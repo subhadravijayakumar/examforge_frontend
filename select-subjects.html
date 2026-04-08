@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select Subjects</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family:'Outfit',sans-serif;
+      background:#f8f8ff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+    }
+
+    .container {
+      background:#fff;
+      padding:40px;
+      border-radius:20px;
+      width:100%;
+      max-width:500px;
+      box-shadow:0 10px 40px rgba(0,0,0,0.1);
+      text-align:center;
+    }
+
+    .top-link {
+      display:inline-block;
+      margin-bottom:18px;
+      color:#6b7280;
+      text-decoration:none;
+      font-size:14px;
+    }
+
+    .top-link:hover {
+      color:#6366f1;
+    }
+
+    h2 {
+      margin-bottom:20px;
+      color:#6366f1;
+    }
+
+    .subjects {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+      margin-bottom:20px;
+    }
+
+    .card {
+      border:2px solid #e5e7eb;
+      padding:20px;
+      border-radius:15px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .card:hover {
+      border-color:#6366f1;
+    }
+
+    .card.active {
+      background:#6366f1;
+      color:#fff;
+      border-color:#6366f1;
+    }
+
+    button {
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#6366f1;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <a class="top-link" href="login.html">← Back to Login</a>
+  <h2>Select Your Subjects</h2>
+
+  <div class="subjects">
+    <div class="card" onclick="toggle(this, 'math')">Mathematics</div>
+    <div class="card" onclick="toggle(this, 'phy')">Physics</div>
+    <div class="card" onclick="toggle(this, 'chem')">Chemistry</div>
+    <div class="card" onclick="toggle(this, 'cs')">Computer Science</div>
+  </div>
+
+  <button onclick="saveSubjects()">Continue</button>
+</div>
+
+<script>
+let user = localStorage.getItem("currentUser");
+
+if (!user) {
+  alert("Please login first!");
+  window.location.href = "login.html";
+}
+
+let existing = localStorage.getItem(user);
+if (existing) {
+  window.location.href = "student-subjects.html";
+}
+
+let selectedSubjects = {};
+
+function toggle(element, subject) {
+  if (selectedSubjects[subject]) {
+    delete selectedSubjects[subject];
+    element.classList.remove("active");
+  } else {
+    selectedSubjects[subject] = { lessons: 0, mastery: 0 };
+    element.classList.add("active");
+  }
+}
+
+function saveSubjects() {
+  if (Object.keys(selectedSubjects).length === 0) {
+    alert("Select at least one subject");
+    return;
+  }
+
+  localStorage.setItem(user, JSON.stringify(selectedSubjects));
+  window.location.href = "student-subjects.html";
+}
+</script>
+
+</body>
+</html>

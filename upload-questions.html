@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - Upload Questions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1100px; margin:0 auto; }
+    .page-title { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .page-sub { font-size:15px; color:#6b7280; margin-bottom:32px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .card { background:#fff; border-radius:16px; padding:24px; border:1px solid rgba(0,0,0,0.07); box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+    .card-title { font-size:16px; font-weight:700; margin-bottom:18px; }
+    .form-group { margin-bottom:16px; }
+    label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:7px; }
+    input, select, textarea { width:100%; padding:11px 14px; background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:10px; color:#0d0d1a; font-family:'Outfit',sans-serif; font-size:14px; outline:none; transition:all .2s; }
+    input:focus, select:focus, textarea:focus { border-color:#6366f1; background:#fff; }
+    textarea { resize:vertical; }
+    .opt-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .opt-key { width:26px; height:26px; border-radius:7px; background:#f3f4f6; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .diff-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .diff-btn { padding:10px; border-radius:10px; border:2px solid #e5e7eb; background:#f9fafb; cursor:pointer; text-align:center; transition:all .2s; font-family:'Outfit',sans-serif; }
+    .diff-btn.easy.selected { border-color:#10b981; background:rgba(16,185,129,0.08); }
+    .diff-btn.medium.selected { border-color:#f59e0b; background:rgba(245,158,11,0.08); }
+    .diff-btn.hard.selected { border-color:#ef4444; background:rgba(239,68,68,0.08); }
+    .btn-add { width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:700; font-size:15px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; margin-top:8px; transition:all .2s; }
+    .btn-add:hover { transform:translateY(-2px); }
+    .q-item { background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:10px; position:relative; }
+    .q-item-meta { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+    .q-badge { padding:2px 10px; border-radius:100px; font-size:11px; font-weight:700; }
+    .q-item-text { font-size:14px; font-weight:600; margin-bottom:6px; }
+    .q-item-opts { display:flex; gap:8px; flex-wrap:wrap; font-size:12px; color:#6b7280; }
+    .q-opt-correct { color:#10b981; font-weight:700; }
+    .btn-remove { position:absolute; top:10px; right:10px; background:none; border:none; color:#9ca3af; cursor:pointer; font-size:17px; }
+    .btn-remove:hover { color:#ef4444; }
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .btn-publish { padding:9px 20px; border-radius:10px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:700; font-size:13px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; }
+    .empty-bank { text-align:center; padding:32px; color:#9ca3af; font-size:13px; border:1px dashed rgba(99,102,241,0.22); border-radius:14px; background:#fafafe; }
+    @media(max-width:800px){ .two-col{grid-template-columns:1fr;} .page-body{padding:20px;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">📤 Upload Questions</div>
+  <div class="page-sub">Add questions to your real question bank</div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Add New Question</div>
+      <div class="form-group">
+        <label>Difficulty Level</label>
+        <div class="diff-row">
+          <div class="diff-btn easy selected" id="diff-easy" onclick="selectDiff('easy')"><div>🟢</div><div style="font-size:12px;font-weight:700;color:#059669">Easy</div><div style="font-size:10px;color:#6b7280">+1 mark</div></div>
+          <div class="diff-btn medium" id="diff-medium" onclick="selectDiff('medium')"><div>🟡</div><div style="font-size:12px;font-weight:700;color:#d97706">Medium</div><div style="font-size:10px;color:#6b7280">+3 marks</div></div>
+          <div class="diff-btn hard" id="diff-hard" onclick="selectDiff('hard')"><div>🔴</div><div style="font-size:12px;font-weight:700;color:#dc2626">Hard</div><div style="font-size:10px;color:#6b7280">+5 marks</div></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Subject</label>
+        <select id="sel-subject">
+          <option>Mathematics</option>
+          <option>Physics</option>
+          <option>Chemistry</option>
+          <option>Biology</option>
+          <option>Computer Science</option>
+          <option>History</option>
+          <option>Geography</option>
+          <option>English</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Question Text</label>
+        <textarea id="q-text" rows="3" placeholder="Enter the question..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Options <span style="font-size:11px;color:#9ca3af">(select radio = correct answer)</span></label>
+        <div class="opt-row"><div class="opt-key">A</div><input type="text" id="opt-0" placeholder="Option A"/><input type="radio" name="correct" value="0" checked style="width:16px;height:16px;cursor:pointer"/></div>
+        <div class="opt-row"><div class="opt-key">B</div><input type="text" id="opt-1" placeholder="Option B"/><input type="radio" name="correct" value="1" style="width:16px;height:16px;cursor:pointer"/></div>
+        <div class="opt-row"><div class="opt-key">C</div><input type="text" id="opt-2" placeholder="Option C"/><input type="radio" name="correct" value="2" style="width:16px;height:16px;cursor:pointer"/></div>
+        <div class="opt-row"><div class="opt-key">D</div><input type="text" id="opt-3" placeholder="Option D"/><input type="radio" name="correct" value="3" style="width:16px;height:16px;cursor:pointer"/></div>
+      </div>
+      <div class="form-group">
+        <label>Explanation <span style="font-weight:400;font-size:11px;color:#9ca3af">(optional)</span></label>
+        <textarea id="q-exp" rows="2" placeholder="Why is this the correct answer?"></textarea>
+      </div>
+      <button class="btn-add" onclick="addQuestion()">+ Add Question to Bank</button>
+    </div>
+    <div>
+      <div class="section-header">
+        <div style="font-size:16px;font-weight:700">Question Bank (<span id="q-count">0</span>)</div>
+        <button class="btn-publish" onclick="publishAll()">Use In Dashboard</button>
+      </div>
+      <div id="q-bank"></div>
+    </div>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+  initNav('upload');
+
+  let workspace = getTeacherWorkspace();
+  let questions = [...workspace.questionBank];
+  let selectedDiff = 'easy';
+  const DIFF_COLORS = { easy:'#10b981', medium:'#f59e0b', hard:'#ef4444' };
+  const DIFF_BG = { easy:'rgba(16,185,129,0.10)', medium:'rgba(245,158,11,0.10)', hard:'rgba(239,68,68,0.10)' };
+  const DIFF_MARKS = { easy:1, medium:3, hard:5 };
+
+  function selectDiff(d) {
+    selectedDiff = d;
+    ['easy','medium','hard'].forEach((x) => {
+      const el = document.getElementById('diff-' + x);
+      el.classList.toggle('selected', x === d);
+    });
+  }
+
+  function addQuestion() {
+    const text = document.getElementById('q-text').value.trim();
+    const opts = [0,1,2,3].map((i) => document.getElementById('opt-' + i).value.trim());
+    const ans = parseInt(document.querySelector('input[name="correct"]:checked').value, 10);
+    const exp = document.getElementById('q-exp').value.trim();
+    const subj = document.getElementById('sel-subject').value;
+
+    if (!text) { alert('Please enter a question'); return; }
+    if (opts.some((o) => !o)) { alert('Please fill all 4 options'); return; }
+
+    workspace = addTeacherQuestion({ text, opts, ans, exp, diff:selectedDiff, subj });
+    questions = [...workspace.questionBank];
+    renderBank();
+
+    document.getElementById('q-text').value = '';
+    [0,1,2,3].forEach((i) => { document.getElementById('opt-' + i).value = ''; });
+    document.getElementById('q-exp').value = '';
+  }
+
+  function renderBank() {
+    document.getElementById('q-count').textContent = questions.length;
+
+    if (!questions.length) {
+      document.getElementById('q-bank').innerHTML = '<div class="empty-bank">No questions yet. Add one on the left and your teacher dashboard will update from real data.</div>';
+      return;
+    }
+
+    document.getElementById('q-bank').innerHTML = questions.map((q) => `
+      <div class="q-item">
+        <div class="q-item-meta">
+          <span class="q-badge" style="background:${DIFF_BG[q.diff]};color:${DIFF_COLORS[q.diff]}">${q.diff.charAt(0).toUpperCase() + q.diff.slice(1)} · +${DIFF_MARKS[q.diff]}mk</span>
+          <span class="q-badge" style="background:rgba(99,102,241,0.10);color:#6366f1">${q.subj}</span>
+        </div>
+        <div class="q-item-text">${q.text}</div>
+        <div class="q-item-opts">${q.opts.map((o, oi) => `<span class="${oi === q.ans ? 'q-opt-correct' : ''}">${['A','B','C','D'][oi]}: ${o}${oi === q.ans ? ' ✓' : ''}</span>`).join('')}</div>
+        ${q.exp ? `<div style="font-size:12px;color:#9ca3af;margin-top:6px;font-style:italic">💡 ${q.exp}</div>` : ''}
+        <button class="btn-remove" onclick="removeQ('${q.id}')">✕</button>
+      </div>`).join('');
+  }
+
+  function removeQ(id) {
+    workspace = removeTeacherQuestion(id);
+    questions = [...workspace.questionBank];
+    renderBank();
+  }
+
+  function publishAll() {
+    if (!questions.length) { alert('No questions in the bank yet'); return; }
+    alert(`${questions.length} questions are now available across your teacher dashboard and subject pages.`);
+  }
+
+  renderBank();
+</script>
+</body>
+</html>

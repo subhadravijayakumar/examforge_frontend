@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge — Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { max-width:900px; margin:0 auto; padding:40px 20px; }
+    .result-hero { text-align:center; margin-bottom:36px; }
+    .result-emoji { font-size:64px; margin-bottom:16px; }
+    .result-title { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px; }
+    .result-sub   { font-size:15px; color:#6b7280; }
+    .score-section { display:flex; align-items:center; justify-content:center; gap:32px; flex-wrap:wrap; margin-bottom:36px; }
+    .score-circle {
+      width:160px; height:160px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      flex-direction:column; position:relative;
+      border:8px solid #e5e7eb;
+    }
+    .score-pct   { font-size:36px; font-weight:800; line-height:1; }
+    .score-label { font-size:12px; color:#6b7280; }
+    .score-card  { background:#fff; border-radius:16px; padding:20px 24px; border:1px solid rgba(0,0,0,0.07); text-align:center; min-width:140px; }
+    .score-card-val { font-size:28px; font-weight:800; margin-bottom:4px; }
+    .score-card-label { font-size:13px; color:#6b7280; }
+    .breakdown-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+    .breakdown-card { background:#fff; border-radius:16px; padding:20px; text-align:center; border:1px solid rgba(0,0,0,0.07); }
+    .breakdown-title { font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#9ca3af; margin-bottom:8px; }
+    .breakdown-val   { font-size:28px; font-weight:800; margin-bottom:4px; }
+    .breakdown-marks { font-size:12px; color:#6b7280; }
+    .section-title { font-size:18px; font-weight:700; margin-bottom:16px; }
+    .weakness-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:32px; }
+    .weakness-card { background:#fff; border-radius:16px; padding:20px; border:1px solid rgba(0,0,0,0.07); }
+    .weakness-topic { font-weight:600; font-size:15px; margin-bottom:8px; }
+    .weakness-bar   { height:6px; border-radius:100px; background:#f3f4f6; margin-bottom:8px; overflow:hidden; }
+    .weakness-fill  { height:100%; border-radius:100px; }
+    .weakness-pct   { font-size:13px; color:#6b7280; margin-bottom:6px; }
+    .weakness-suggestion { font-size:12px; color:#6b7280; line-height:1.5; }
+    .study-plan { background:#fff; border-radius:16px; padding:24px; border:1px solid rgba(0,0,0,0.07); margin-bottom:32px; }
+    .plan-item { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #f9fafb; }
+    .plan-item:last-child { border-bottom:none; }
+    .plan-icon { font-size:20px; flex-shrink:0; }
+    .plan-title { font-weight:600; font-size:14px; margin-bottom:4px; }
+    .plan-desc  { font-size:13px; color:#6b7280; line-height:1.5; }
+    .action-btns { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+    .btn { padding:13px 28px; border-radius:12px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; transition:all .2s; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+    .btn-primary { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; box-shadow:0 4px 16px rgba(99,102,241,0.30); }
+    .btn-primary:hover { transform:translateY(-2px); }
+    .btn-ghost { background:#fff; color:#374151; border:1.5px solid #e5e7eb; }
+    .btn-ghost:hover { border-color:#6366f1; color:#6366f1; }
+    @media(max-width:600px){ .breakdown-grid{grid-template-columns:1fr;} .score-section{flex-direction:column;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="result-hero">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title" id="result-title">Exam Complete!</div>
+    <div class="result-sub"   id="result-sub">Here's how you performed</div>
+  </div>
+  <div class="score-section">
+    <div class="score-circle" id="score-circle">
+      <div class="score-pct"   id="score-pct">0%</div>
+      <div class="score-label">Score</div>
+    </div>
+    <div class="score-card">
+      <div class="score-card-val" id="score-marks">0/27</div>
+      <div class="score-card-label">Marks</div>
+    </div>
+    <div class="score-card">
+      <div class="score-card-val" id="score-level">Easy</div>
+      <div class="score-card-label">Level Reached</div>
+    </div>
+  </div>
+  <div class="breakdown-grid" id="breakdown-grid"></div>
+  <div class="section-title">🎯 Topic Weakness Analysis</div>
+  <div class="weakness-grid" id="weakness-grid"></div>
+  <div class="section-title">📚 Personalised Study Plan</div>
+  <div class="study-plan" id="study-plan"></div>
+  <div class="action-btns">
+    <a class="btn btn-primary" href="exam-select.html">📝 Try Another Exam</a>
+    <a class="btn btn-ghost"   href="student-dashboard.html">🏠 Dashboard</a>
+    <a class="btn btn-ghost"   href="leaderboard.html">🏆 Leaderboard</a>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+  initNav('results');
+  const r = JSON.parse(sessionStorage.getItem('ef_result')||'{}');
+  if (!r.subject) { window.location.href='student-dashboard.html'; }
+
+  const pct = r.percentage || 0;
+  const emoji = pct>=80?'🏆':pct>=60?'🎉':pct>=40?'💪':'📚';
+  const title = pct>=80?'Outstanding!':pct>=60?'Great Job!':pct>=40?'Good Effort!':'Keep Practicing!';
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent   = r.subject + ' Adaptive Exam';
+
+  const circle = document.getElementById('score-circle');
+  const color   = pct>=70?'#10b981':pct>=50?'#f59e0b':'#ef4444';
+  circle.style.borderColor = color;
+  document.getElementById('score-pct').textContent   = pct + '%';
+  document.getElementById('score-pct').style.color   = color;
+  document.getElementById('score-marks').textContent = r.totalMarks + ' / ' + r.maxMarks;
+  document.getElementById('score-level').textContent = r.levelReached || (r.hardCorrect>0?'Hard':r.mediumCorrect>0?'Medium':'Easy');
+
+  document.getElementById('breakdown-grid').innerHTML = [
+    {label:'Easy Level',   val:r.easyCorrect+'/3',   marks:r.easyMarks,   color:'#10b981'},
+    {label:'Medium Level', val:r.mediumCorrect+'/3', marks:r.mediumMarks, color:'#f59e0b'},
+    {label:'Hard Level',   val:r.hardCorrect+'/3',   marks:r.hardMarks,   color:'#ef4444'},
+  ].map(b=>`
+    <div class="breakdown-card">
+      <div class="breakdown-title">${b.label}</div>
+      <div class="breakdown-val" style="color:${b.color}">${b.val}</div>
+      <div class="breakdown-marks">+${b.marks} marks</div>
+    </div>`).join('');
+
+  const areas = [
+    {name:'Core Concepts',    pct: Math.round(r.easyCorrect/3*100),   color:'#10b981'},
+    {name:'Applied Problems', pct: Math.round(r.mediumCorrect/3*100), color:'#f59e0b'},
+    {name:'Advanced Topics',  pct: Math.round(r.hardCorrect/3*100),   color:'#ef4444'},
+  ];
+  document.getElementById('weakness-grid').innerHTML = areas.map(a=>`
+    <div class="weakness-card">
+      <div class="weakness-topic">${a.name}</div>
+      <div class="weakness-bar"><div class="weakness-fill" style="width:${a.pct}%;background:${a.color}"></div></div>
+      <div class="weakness-pct">${a.pct}% correct</div>
+      <div class="weakness-suggestion">${a.pct>=66?'✅ Strong area — keep it up!':a.pct>=33?'⚠️ Needs more practice':'🎯 Focus area — review fundamentals'}</div>
+    </div>`).join('');
+
+  const weak = areas.filter(a=>a.pct<66);
+  document.getElementById('study-plan').innerHTML = [
+    {icon:'1️⃣', title:'Focus on '+((weak[0]?.name)||'Advanced Topics'), desc:'Review concepts, practice 5 questions daily from this area before attempting harder ones.'},
+    {icon:'2️⃣', title:'Timed Practice', desc:'Set a 30-minute timer and solve past exam questions. Speed and accuracy both matter.'},
+    {icon:'📅', title:'7-Day Study Plan', desc:'Take one exam daily for 7 days. Focus on weak areas. Use the 3-2-1 method: 3 easy, 2 medium, 1 hard question per session.'},
+    {icon:'🎯', title:'Target Score', desc:'Aim for 80%+ in your next attempt. Review explanations for every wrong answer.'},
+  ].map(p=>`
+    <div class="plan-item">
+      <span class="plan-icon">${p.icon}</span>
+      <div><div class="plan-title">${p.title}</div><div class="plan-desc">${p.desc}</div></div>
+    </div>`).join('');
+</script>
+</body>
+</html>

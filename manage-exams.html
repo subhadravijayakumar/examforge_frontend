@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - Manage Exams</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1100px; margin:0 auto; }
+    .page-title { font-size:28px; font-weight:800; margin-bottom:8px; }
+    .page-sub { font-size:15px; color:#6b7280; margin-bottom:28px; }
+    .exam-grid { display:grid; gap:16px; }
+    .exam-card { background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:18px; padding:22px; box-shadow:0 4px 18px rgba(0,0,0,0.04); }
+    .exam-top { display:flex; justify-content:space-between; gap:16px; margin-bottom:12px; flex-wrap:wrap; }
+    .exam-name { font-size:18px; font-weight:700; }
+    .exam-meta { font-size:13px; color:#6b7280; }
+    .pill { display:inline-flex; padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700; }
+    .pill.live { background:#dcfce7; color:#166534; }
+    .pill.soon { background:#dbeafe; color:#1d4ed8; }
+    .exam-stats { display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:#4b5563; }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">Manage Exams</div>
+  <div class="page-sub">Review active exams and upcoming adaptive sessions.</div>
+  <div class="exam-grid">
+    <div class="exam-card">
+      <div class="exam-top">
+        <div><div class="exam-name">Mathematics Adaptive Mock</div><div class="exam-meta">Easy to hard progression enabled</div></div>
+        <span class="pill live">Live</span>
+      </div>
+      <div class="exam-stats"><span>27 max marks</span><span>47 students assigned</span><span>Starts immediately on attempt</span></div>
+    </div>
+    <div class="exam-card">
+      <div class="exam-top">
+        <div><div class="exam-name">Physics Revision Test</div><div class="exam-meta">Focus on medium and hard topic unlocks</div></div>
+        <span class="pill soon">Scheduled</span>
+      </div>
+      <div class="exam-stats"><span>18 marks configured</span><span>41 students assigned</span><span>Opens tomorrow at 9:00 AM</span></div>
+    </div>
+    <div class="exam-card">
+      <div class="exam-top">
+        <div><div class="exam-name">Chemistry Booster Quiz</div><div class="exam-meta">Targeted remediation for weak topics</div></div>
+        <span class="pill live">Live</span>
+      </div>
+      <div class="exam-stats"><span>Topic-based question pool</span><span>38 students assigned</span><span>Organic chemistry focus</span></div>
+    </div>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>initNav('manage');</script>
+</body>
+</html>

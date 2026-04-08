@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - Achievements</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1000px; margin:0 auto; }
+    .page-title { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .page-sub { font-size:15px; color:#6b7280; margin-bottom:32px; }
+    .badges-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; }
+    .badge-card {
+      background:#fff; border-radius:16px; padding:24px 16px;
+      text-align:center; border:1px solid rgba(0,0,0,0.07);
+      box-shadow:0 2px 10px rgba(0,0,0,0.04); transition:all .2s;
+    }
+    .badge-card.earned { border-color:rgba(245,158,11,0.4); background:rgba(245,158,11,0.03); }
+    .badge-card.earned:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(245,158,11,0.15); }
+    .badge-card:not(.earned) { opacity:.45; filter:grayscale(1); }
+    .badge-icon { font-size:40px; margin-bottom:10px; }
+    .badge-name { font-size:13px; font-weight:700; margin-bottom:4px; }
+    .badge-status { font-size:11px; color:#f59e0b; font-weight:600; }
+    .badge-locked { font-size:11px; color:#9ca3af; }
+    .xp-card { background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:20px; padding:28px 32px; margin-bottom:28px; color:#fff; display:flex; align-items:center; gap:24px; }
+    .xp-num { font-size:48px; font-weight:900; }
+    .xp-label { font-size:14px; color:rgba(255,255,255,.75); margin-bottom:4px; }
+    .xp-level { font-size:18px; font-weight:700; }
+    .xp-bar-wrap { flex:1; height:8px; background:rgba(255,255,255,.2); border-radius:100px; overflow:hidden; margin-top:8px; }
+    .xp-bar-fill { height:100%; background:#fff; border-radius:100px; }
+    @media(max-width:700px){ .xp-card{flex-direction:column; align-items:flex-start;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">🎖️ Achievements</div>
+  <div class="page-sub">Badges unlock from your real exam activity, not fixed demo values</div>
+
+  <div class="xp-card">
+    <div>
+      <div class="xp-label">Total XP Earned</div>
+      <div class="xp-num" id="xp-num">0</div>
+    </div>
+    <div style="flex:1">
+      <div class="xp-label" id="xp-level-label">Level 0 - Starter</div>
+      <div class="xp-level" id="xp-level-text">250 XP to Level 1</div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="badges-grid" id="badges-grid"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  initNav('badges');
+
+  const progress = getStudentProgress();
+  const levelMeta = getLevelMeta(progress.totalXp);
+  const badges = getBadgeCatalog(progress);
+
+  document.getElementById('xp-num').textContent = progress.totalXp;
+  document.getElementById('xp-level-label').textContent = `Level ${levelMeta.number} - ${levelMeta.name}`;
+  document.getElementById('xp-level-text').textContent = levelMeta.nextXp
+    ? `${levelMeta.nextXp - progress.totalXp} XP to Level ${levelMeta.number + 1}`
+    : 'Highest level unlocked';
+  document.getElementById('xp-bar-fill').style.width = `${levelMeta.progressPercent}%`;
+
+  document.getElementById('badges-grid').innerHTML = badges.map((badge) => `
+    <div class="badge-card ${badge.unlocked ? 'earned' : ''}">
+      <div class="badge-icon">${badge.icon}</div>
+      <div class="badge-name">${badge.name}</div>
+      <div class="${badge.unlocked ? 'badge-status' : 'badge-locked'}">${badge.unlocked ? '✓ Earned' : '🔒 Locked'}</div>
+    </div>`).join('');
+</script>
+</body>
+</html>

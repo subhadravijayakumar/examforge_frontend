@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge — Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:900px; margin:0 auto; }
+    .page-title { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .page-sub   { font-size:15px; color:#6b7280; margin-bottom:32px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .card { background:#fff; border-radius:16px; padding:24px; border:1px solid rgba(0,0,0,0.07); box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+    .profile-top { display:flex; gap:18px; align-items:center; margin-bottom:24px; }
+    .profile-avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#6366f1,#ec4899); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#fff; flex-shrink:0; }
+    .profile-name { font-size:20px; font-weight:800; }
+    .profile-role { font-size:14px; color:#6b7280; }
+    .profile-level { font-size:13px; color:#f59e0b; font-weight:600; margin-top:2px; }
+    .form-group { margin-bottom:16px; }
+    label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:7px; }
+    input { width:100%; padding:11px 14px; background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:10px; color:#0d0d1a; font-family:'Outfit',sans-serif; font-size:14px; outline:none; transition:all .2s; }
+    input:focus { border-color:#6366f1; background:#fff; }
+    .btn-save { padding:10px 24px; border-radius:10px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:700; font-size:14px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; transition:all .2s; }
+    .btn-save:hover { transform:translateY(-2px); }
+    .stat-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f9fafb; font-size:14px; }
+    .stat-row:last-child { border-bottom:none; }
+    .stat-key { color:#6b7280; }
+    .stat-val { font-weight:700; }
+    @media(max-width:700px){ .two-col{grid-template-columns:1fr;} .page-body{padding:20px;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">👤 Profile</div>
+  <div class="page-sub">Your account details</div>
+  <div class="two-col">
+    <div class="card">
+      <div class="profile-top">
+        <div class="profile-avatar" id="profile-avatar">A</div>
+        <div>
+          <div class="profile-name" id="profile-name">Loading...</div>
+          <div class="profile-role" id="profile-role">Student</div>
+          <div class="profile-level">⚡ Level 3 — Scholar</div>
+        </div>
+      </div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="inp-name"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="inp-email"/></div>
+      <button class="btn-save" onclick="saveProfile()">Save Changes</button>
+    </div>
+    <div class="card">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px">Performance Summary</div>
+      <div class="stat-row"><span class="stat-key">Exams Taken</span><span class="stat-val">12</span></div>
+      <div class="stat-row"><span class="stat-key">Best Score</span><span class="stat-val" style="color:#10b981">94%</span></div>
+      <div class="stat-row"><span class="stat-key">Average Score</span><span class="stat-val">78%</span></div>
+      <div class="stat-row"><span class="stat-key">Total XP</span><span class="stat-val" style="color:#f59e0b">2,450 XP</span></div>
+      <div class="stat-row"><span class="stat-key">Current Rank</span><span class="stat-val" style="color:#6366f1">#7 of 47</span></div>
+      <div class="stat-row"><span class="stat-key">Day Streak</span><span class="stat-val">🔥 5 days</span></div>
+      <div class="stat-row"><span class="stat-key">Badges Earned</span><span class="stat-val">4 badges</span></div>
+    </div>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+  initNav('profile');
+  const user = getUser();
+  document.getElementById('profile-avatar').textContent = user.name[0].toUpperCase();
+  document.getElementById('profile-name').textContent   = user.name;
+  document.getElementById('profile-role').textContent   = user.role==='TEACHER'?'👨‍🏫 Teacher':'🎓 Student';
+  document.getElementById('inp-name').value  = user.name;
+  document.getElementById('inp-email').value = user.email||'';
+  function saveProfile() {
+    const name = document.getElementById('inp-name').value;
+    user.name = name;
+    sessionStorage.setItem('ef_user', JSON.stringify(user));
+    alert('Profile saved!');
+  }
+</script>
+</body>
+</html>

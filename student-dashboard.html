@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1200px; margin:0 auto; }
+    .greeting { font-size:26px; font-weight:800; letter-spacing:-.5px; margin-bottom:4px; }
+    .greeting-sub { font-size:15px; color:#6b7280; margin-bottom:28px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:28px; }
+    .stat-card { background:#fff; border-radius:16px; padding:22px; border:1px solid rgba(0,0,0,0.06); box-shadow:0 2px 10px rgba(0,0,0,0.04); transition:all .2s; }
+    .stat-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,0.08); }
+    .stat-icon { font-size:26px; margin-bottom:12px; }
+    .stat-val  { font-size:30px; font-weight:800; line-height:1; margin-bottom:5px; }
+    .stat-label { font-size:13px; color:#6b7280; }
+    .quick-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px; }
+    .qa { background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:16px; padding:22px 18px; text-align:center; text-decoration:none; color:#0d0d1a; transition:all .25s; box-shadow:0 2px 10px rgba(0,0,0,0.04); display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .qa:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(99,102,241,0.12); border-color:#6366f1; }
+    .qa-icon  { font-size:30px; }
+    .qa-label { font-size:14px; font-weight:700; }
+    .qa-sub   { font-size:12px; color:#6b7280; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .card { background:#fff; border-radius:16px; padding:22px; border:1px solid rgba(0,0,0,0.06); box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+    .card-title { font-size:16px; font-weight:700; color:#0d0d1a; margin-bottom:16px; }
+    .perf-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .perf-label { font-size:13px; color:#6b7280; width:130px; flex-shrink:0; }
+    .perf-bar-wrap { flex:1; height:8px; background:#f3f4f6; border-radius:100px; overflow:hidden; }
+    .perf-bar { height:100%; border-radius:100px; }
+    .perf-pct { font-size:13px; font-weight:600; width:44px; text-align:right; flex-shrink:0; }
+    .rec-item { display:flex; gap:12px; align-items:flex-start; padding:12px; border-radius:12px; margin-bottom:10px; border:1px solid rgba(99,102,241,0.10); background:rgba(99,102,241,0.03); }
+    .rec-icon { font-size:22px; flex-shrink:0; }
+    .rec-title { font-weight:600; font-size:14px; margin-bottom:3px; }
+    .rec-desc  { font-size:13px; color:#6b7280; line-height:1.5; }
+    .xp-section { background:#fff; border-radius:16px; padding:20px; border:1px solid rgba(0,0,0,0.06); margin-bottom:24px; display:flex; align-items:center; gap:20px; }
+    .xp-icon { font-size:36px; }
+    .xp-info { flex:1; }
+    .xp-label { font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+    .xp-val   { font-size:16px; font-weight:700; margin-bottom:8px; }
+    .xp-bar   { height:8px; background:#f3f4f6; border-radius:100px; overflow:hidden; }
+    .xp-fill  { height:100%; border-radius:100px; background:linear-gradient(90deg,#f59e0b,#ec4899); }
+    .empty-card { padding:18px; border-radius:14px; background:#fafafe; border:1px dashed rgba(99,102,241,0.22); color:#6b7280; font-size:13px; line-height:1.6; }
+    @media(max-width:900px){ .page-body{padding:20px;} .stats-grid{grid-template-columns:1fr 1fr;} .two-col{grid-template-columns:1fr;} .quick-actions{grid-template-columns:1fr 1fr;} }
+    @media(max-width:600px){ .stats-grid,.quick-actions{grid-template-columns:1fr;} .xp-section{flex-direction:column; align-items:flex-start;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="greeting" id="greeting">Good Morning!</div>
+  <div class="greeting-sub">Here's your learning overview for today</div>
+
+  <div class="xp-section">
+    <div class="xp-icon">⚡</div>
+    <div class="xp-info">
+      <div class="xp-label" id="xp-label">Level 0 - Starter</div>
+      <div class="xp-val" id="xp-val">0 XP - next level at 250 XP</div>
+      <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+    <div id="xp-progress-text" style="font-size:13px;color:#f59e0b;font-weight:600">0% to Level 1</div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-val" id="stat-exams" style="color:#6366f1">0</div><div class="stat-label">Exams Taken</div></div>
+    <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-val" id="stat-avg" style="color:#10b981">0%</div><div class="stat-label">Avg Score</div></div>
+    <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-val" id="stat-streak" style="color:#ec4899">0</div><div class="stat-label">Day Streak</div></div>
+    <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-val" id="stat-badges" style="color:#f59e0b">0</div><div class="stat-label">Badges Earned</div></div>
+  </div>
+
+  <div class="quick-actions">
+    <a class="qa" href="exam-select.html"><div class="qa-icon">📝</div><div class="qa-label">Take Exam</div><div class="qa-sub">Start adaptive test</div></a>
+    <a class="qa" href="student-subjects.html"><div class="qa-icon">📚</div><div class="qa-label">My Subjects</div><div class="qa-sub">Browse and enrol</div></a>
+    <a class="qa" href="leaderboard.html"><div class="qa-icon">🏆</div><div class="qa-label">Leaderboard</div><div class="qa-sub">See your rank</div></a>
+    <a class="qa" href="results.html"><div class="qa-icon">📊</div><div class="qa-label">My Results</div><div class="qa-sub">View past exams</div></a>
+    <a class="qa" href="badges.html"><div class="qa-icon">🎖️</div><div class="qa-label">Achievements</div><div class="qa-sub">Unlock badges</div></a>
+    <a class="qa" href="profile.html"><div class="qa-icon">👤</div><div class="qa-label">Profile</div><div class="qa-sub">Your account</div></a>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">📈 Topic Strength</div>
+      <div id="topic-strength"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Focus Recommendations</div>
+      <div id="recommendations"></div>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  initNav('overview');
+
+  const user = getUser();
+  const progress = getStudentProgress();
+  const levelMeta = getLevelMeta(progress.totalXp);
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+
+  document.getElementById('greeting').textContent = `${g}, ${user.name}! 👋`;
+  document.getElementById('xp-label').textContent = `Level ${levelMeta.number} - ${levelMeta.name}`;
+  document.getElementById('xp-val').textContent = levelMeta.nextXp
+    ? `${progress.totalXp} XP - next level at ${levelMeta.nextXp} XP`
+    : `${progress.totalXp} XP - max level reached`;
+  document.getElementById('xp-fill').style.width = `${levelMeta.progressPercent}%`;
+  document.getElementById('xp-progress-text').textContent = levelMeta.nextXp
+    ? `${levelMeta.progressPercent}% to Level ${levelMeta.number + 1}`
+    : '100% complete';
+
+  document.getElementById('stat-exams').textContent = progress.examsTaken;
+  document.getElementById('stat-avg').textContent = `${progress.avgScore}%`;
+  document.getElementById('stat-streak').textContent = progress.streak;
+  document.getElementById('stat-badges').textContent = progress.badges.length;
+
+  const subjectStrengthEl = document.getElementById('topic-strength');
+  const subjectRows = getSubjectPerformance(progress);
+  if (!progress.examsTaken) {
+    subjectStrengthEl.innerHTML = '<div class="empty-card">No analysis yet. Your subject chart will appear here after your first completed exam.</div>';
+  } else {
+    subjectStrengthEl.innerHTML = subjectRows
+      .filter((item) => item.attempts > 0)
+      .sort((a, b) => b.avgScore - a.avgScore)
+      .map((item, index) => {
+        const colors = [
+          'linear-gradient(90deg,#6366f1,#8b5cf6)',
+          'linear-gradient(90deg,#10b981,#059669)',
+          'linear-gradient(90deg,#f59e0b,#d97706)',
+          'linear-gradient(90deg,#ef4444,#dc2626)',
+          'linear-gradient(90deg,#ec4899,#f43f5e)'
+        ];
+        return `
+          <div class="perf-row">
+            <span class="perf-label">${item.subject}</span>
+            <div class="perf-bar-wrap"><div class="perf-bar" style="width:${item.avgScore}%;background:${colors[index % colors.length]}"></div></div>
+            <span class="perf-pct" style="color:#374151">${item.avgScore}%</span>
+          </div>`;
+      }).join('');
+  }
+
+  const recommendationsEl = document.getElementById('recommendations');
+  recommendationsEl.innerHTML = getDashboardRecommendations(progress).map((item, index) => `
+    <div class="rec-item" style="${index === 0 ? 'border-color:rgba(239,68,68,0.12);background:rgba(239,68,68,0.04);' : index === 1 ? 'border-color:rgba(99,102,241,0.12);background:rgba(99,102,241,0.04);' : 'border-color:rgba(16,185,129,0.12);background:rgba(16,185,129,0.04);'}">
+      <span class="rec-icon">${item.icon}</span>
+      <div><div class="rec-title">${item.title}</div><div class="rec-desc">${item.desc}</div></div>
+    </div>`).join('');
+</script>
+</body>
+</html>

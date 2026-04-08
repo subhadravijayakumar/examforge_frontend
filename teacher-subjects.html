@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - Teacher Subjects</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1100px; margin:0 auto; }
+    .page-title { font-size:28px; font-weight:800; margin-bottom:8px; }
+    .page-sub { font-size:15px; color:#6b7280; margin-bottom:28px; }
+    .toolbar { display:flex; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; border:none; border-radius:12px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; text-decoration:none; font-weight:700; font-size:14px; }
+    .subject-table { display:grid; gap:14px; }
+    .row { display:grid; grid-template-columns:1.3fr .9fr .9fr .8fr; gap:16px; align-items:center; background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:16px; padding:18px 20px; box-shadow:0 4px 18px rgba(0,0,0,0.04); }
+    .row.head { background:transparent; border:none; box-shadow:none; padding:0 4px; color:#6b7280; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+    .name { font-size:16px; font-weight:700; }
+    .meta { font-size:13px; color:#6b7280; margin-top:4px; }
+    .pill { display:inline-flex; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+    .pill.live { background:#dcfce7; color:#166534; }
+    .pill.draft { background:#fef3c7; color:#92400e; }
+    .empty-card { padding:18px; border-radius:14px; background:#fafafe; border:1px dashed rgba(99,102,241,0.22); color:#6b7280; font-size:13px; line-height:1.6; }
+    @media(max-width:800px){ .row { grid-template-columns:1fr; } .row.head { display:none; } }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">Subjects</div>
+  <div class="page-sub">Manage subjects, question counts, and exam readiness.</div>
+  <div class="toolbar">
+    <div id="toolbar-text" style="color:#6b7280;font-size:14px">0 active subjects in your class workspace</div>
+    <a class="btn" href="upload-questions.html">Upload Questions</a>
+  </div>
+  <div class="subject-table" id="subject-table"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  initNav('subjects');
+
+  const workspace = getTeacherWorkspace();
+  const subjects = getTeacherSubjectSummary(workspace).filter((item) => item.questionCount > 0);
+  document.getElementById('toolbar-text').textContent = `${subjects.length} active subjects in your class workspace`;
+
+  const table = document.getElementById('subject-table');
+  if (!subjects.length) {
+    table.innerHTML = '<div class="empty-card">No subjects are active yet. Upload questions to start building your subject workspace.</div>';
+  } else {
+    table.innerHTML = `
+      <div class="row head"><div>Subject</div><div>Question Bank</div><div>Students</div><div>Status</div></div>
+      ${subjects.map((item) => `
+        <div class="row">
+          <div>
+            <div class="name">${item.subject}</div>
+            <div class="meta">${item.difficultyCounts.easy} easy, ${item.difficultyCounts.medium} medium, ${item.difficultyCounts.hard} hard questions</div>
+          </div>
+          <div>${item.questionCount} questions</div>
+          <div>${item.studentCount} enrolled</div>
+          <div><span class="pill ${item.status === 'Ready' ? 'live' : 'draft'}">${item.status}</span></div>
+        </div>`).join('')}`;
+  }
+</script>
+</body>
+</html>

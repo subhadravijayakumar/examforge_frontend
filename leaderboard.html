@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge — Leaderboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1000px; margin:0 auto; }
+    .page-title { font-size:26px; font-weight:800; letter-spacing:-.5px; margin-bottom:6px; }
+    .page-sub   { font-size:15px; color:#6b7280; margin-bottom:28px; }
+    .podium { display:flex; justify-content:center; align-items:flex-end; gap:16px; margin-bottom:36px; }
+    .podium-item { text-align:center; display:flex; flex-direction:column; align-items:center; }
+    .podium-avatar { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; color:#fff; margin-bottom:8px; }
+    .podium-name  { font-size:14px; font-weight:700; margin-bottom:4px; }
+    .podium-score { font-size:13px; color:#6b7280; margin-bottom:8px; }
+    .podium-base  { border-radius:12px 12px 0 0; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:800; color:#fff; width:100px; }
+    .rank-1 .podium-base { background:linear-gradient(135deg,#f59e0b,#d97706); height:100px; }
+    .rank-2 .podium-base { background:linear-gradient(135deg,#94a3b8,#64748b); height:76px; }
+    .rank-3 .podium-base { background:linear-gradient(135deg,#cd7f32,#a0522d); height:60px; }
+    .crown { font-size:28px; margin-bottom:4px; }
+    .filter-row { display:flex; gap:8px; margin-bottom:20px; }
+    .filter-btn { padding:7px 18px; border-radius:100px; border:1.5px solid #e5e7eb; background:#fff; font-size:13px; font-weight:600; color:#6b7280; cursor:pointer; transition:all .2s; font-family:'Outfit',sans-serif; }
+    .filter-btn.active { border-color:#6366f1; color:#6366f1; background:rgba(99,102,241,0.07); }
+    .lb-card { background:#fff; border-radius:20px; border:1px solid rgba(0,0,0,0.07); overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,0.05); }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:#f9fafb; }
+    th { padding:13px 18px; text-align:left; font-size:12px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid #f3f4f6; }
+    td { padding:15px 18px; border-bottom:1px solid #f9fafb; font-size:14px; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#fafafa; }
+    tr.my-row td { background:rgba(99,102,241,0.04); }
+    .rank-badge { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+    .r1 { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+    .r2 { background:linear-gradient(135deg,#94a3b8,#64748b); color:#fff; }
+    .r3 { background:linear-gradient(135deg,#cd7f32,#a0522d); color:#fff; }
+    .rn { background:#f3f4f6; color:#6b7280; }
+    .s-cell { display:flex; align-items:center; gap:10px; }
+    .s-avt { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; }
+    .you-tag { padding:2px 8px; border-radius:6px; background:rgba(99,102,241,0.10); color:#6366f1; font-size:11px; font-weight:700; }
+    @media(max-width:700px){ .page-body{padding:20px;} th,td{padding:10px 12px;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">🏆 Leaderboard</div>
+  <div class="page-sub">Top performers this month</div>
+  <div class="podium">
+    <div class="podium-item rank-2">
+      <div class="podium-avatar" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">R</div>
+      <div class="podium-name">Ravi Kumar</div>
+      <div class="podium-score">91%</div>
+      <div class="podium-base">🥈</div>
+    </div>
+    <div class="podium-item rank-1">
+      <div class="crown">👑</div>
+      <div class="podium-avatar" style="background:linear-gradient(135deg,#f59e0b,#ec4899);width:76px;height:76px;font-size:28px">P</div>
+      <div class="podium-name">Priya Sharma</div>
+      <div class="podium-score">94%</div>
+      <div class="podium-base">🥇</div>
+    </div>
+    <div class="podium-item rank-3">
+      <div class="podium-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">A</div>
+      <div class="podium-name">Anitha S</div>
+      <div class="podium-score">88%</div>
+      <div class="podium-base">🥉</div>
+    </div>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter(this)">All Subjects</button>
+    <button class="filter-btn" onclick="setFilter(this)">Mathematics</button>
+    <button class="filter-btn" onclick="setFilter(this)">Physics</button>
+    <button class="filter-btn" onclick="setFilter(this)">Computer Science</button>
+  </div>
+  <div class="lb-card">
+    <table>
+      <thead><tr><th>Rank</th><th>Student</th><th>Score</th><th>Exams</th><th>Streak</th><th>Badge</th></tr></thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+  const DATA = [
+    {name:'Priya Sharma',score:94,exams:18,streak:12,badge:'🥇',color:'#ec4899'},
+    {name:'Ravi Kumar',score:91,exams:15,streak:8,badge:'🥈',color:'#6366f1'},
+    {name:'Anitha S',score:88,exams:20,streak:15,badge:'🥉',color:'#10b981'},
+    {name:'Mohammed Ali',score:85,exams:16,streak:6,badge:'🎖️',color:'#f59e0b'},
+    {name:'Sruthi Devi',score:82,exams:14,streak:9,badge:'🎖️',color:'#8b5cf6'},
+    {name:'Karthik R',score:80,exams:19,streak:4,badge:'🎖️',color:'#ef4444'},
+    {name:'You',score:78,exams:12,streak:5,badge:'⭐',color:'#6366f1',isYou:true},
+    {name:'Deepa Nair',score:75,exams:11,streak:3,badge:'⭐',color:'#06b6d4'},
+    {name:'Arjun V',score:71,exams:13,streak:2,badge:'⭐',color:'#f97316'},
+    {name:'Lakshmi P',score:68,exams:10,streak:1,badge:'⭐',color:'#ec4899'},
+  ];
+  const RANK_CLASSES=['r1','r2','r3','rn','rn','rn','rn','rn','rn','rn'];
+  function renderTable(){
+    const user=getUser();
+    document.getElementById('lb-body').innerHTML=DATA.map((d,i)=>`
+      <tr class="${d.isYou?'my-row':''}">
+        <td><div class="rank-badge ${RANK_CLASSES[i]}">${i+1}</div></td>
+        <td><div class="s-cell"><div class="s-avt" style="background:linear-gradient(135deg,${d.color},${d.color}aa)">${d.isYou?user.name[0]:d.name[0]}</div><div><strong>${d.isYou?(user.name+' (You)'):d.name}</strong>${d.isYou?' <span class="you-tag">You</span>':''}</div></div></td>
+        <td><strong style="color:${d.score>85?'#10b981':d.score>70?'#f59e0b':'#ef4444'}">${d.score}%</strong></td>
+        <td>${d.exams}</td>
+        <td>🔥 ${d.streak} days</td>
+        <td>${d.badge}</td>
+      </tr>`).join('');
+  }
+  function setFilter(btn){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable();
+  }
+  initNav('leaderboard');
+  renderTable();
+</script>
+</body>
+</html>

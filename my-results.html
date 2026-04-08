@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - My Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:900px; margin:0 auto; }
+    .page-title { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .page-sub { font-size:15px; color:#6b7280; margin-bottom:32px; }
+    .result-row {
+      background:#fff; border:1px solid rgba(0,0,0,0.07);
+      border-radius:16px; padding:20px 24px;
+      display:flex; align-items:center; gap:16px;
+      margin-bottom:12px; transition:all .2s;
+    }
+    .result-row:hover { box-shadow:0 6px 24px rgba(99,102,241,0.10); border-color:#6366f1; }
+    .result-icon { font-size:30px; flex-shrink:0; }
+    .result-info { flex:1; }
+    .result-name { font-weight:700; font-size:15px; margin-bottom:4px; }
+    .result-meta { display:flex; gap:14px; flex-wrap:wrap; font-size:13px; color:#6b7280; }
+    .result-score { text-align:right; }
+    .score-num { font-size:24px; font-weight:800; }
+    .score-marks { font-size:12px; color:#6b7280; }
+    .empty { text-align:center; padding:60px 24px; color:#6b7280; background:#fff; border:1px dashed rgba(99,102,241,0.22); border-radius:18px; }
+    .empty-icon { font-size:48px; margin-bottom:12px; }
+    .btn-primary { padding:12px 24px; border-radius:12px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:700; font-size:14px; border:none; cursor:pointer; text-decoration:none; font-family:'Outfit',sans-serif; display:inline-flex; align-items:center; gap:8px; margin-top:16px; }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="page-title">📊 My Results</div>
+  <div class="page-sub">All your real exam attempts are listed here</div>
+  <div id="results-list"></div>
+  <div style="text-align:center;margin-top:24px">
+    <a class="btn-primary" href="exam-select.html">📝 Take New Exam</a>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  initNav('results');
+
+  const progress = getStudentProgress();
+  const list = document.getElementById('results-list');
+
+  if (!progress.history.length) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📝</div>
+        <div>No exam attempts yet.</div>
+        <div style="margin-top:8px;">Take your first test and your result history will appear here automatically.</div>
+      </div>`;
+  } else {
+    list.innerHTML = progress.history.map((item) => {
+      const color = item.percentage >= 80 ? '#10b981' : item.percentage >= 60 ? '#f59e0b' : '#ef4444';
+      const icon = EF_SUBJECT_ICONS[item.subject] || '📘';
+      return `
+        <div class="result-row">
+          <div class="result-icon">${icon}</div>
+          <div class="result-info">
+            <div class="result-name">${item.subject} Adaptive Test</div>
+            <div class="result-meta">
+              <span>📅 ${formatDisplayDate(item.completedAt)}</span>
+              <span>🏆 Reached ${item.levelReached} Level</span>
+              <span>⚡ ${item.xpEarned} XP</span>
+            </div>
+          </div>
+          <div class="result-score">
+            <div class="score-num" style="color:${color}">${item.percentage}%</div>
+            <div class="score-marks">${item.totalMarks}/${item.maxMarks} marks</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+</script>
+</body>
+</html>

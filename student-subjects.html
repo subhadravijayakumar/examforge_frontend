@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - My Subjects</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; }
+    .page-body { padding:36px 40px; max-width:1100px; margin:auto; }
+    .page-title { font-size:28px; font-weight:800; margin-bottom:8px; }
+    .page-sub { font-size:15px; color:#6b7280; margin-bottom:28px; }
+
+    .subject-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:18px;
+    }
+
+    .subject-card {
+      background:#fff;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 4px 18px rgba(0,0,0,0.05);
+    }
+
+    .subject-icon { font-weight:800; color:#6366f1; margin-bottom:10px; }
+    .subject-name { font-size:18px; font-weight:700; margin-bottom:8px; }
+    .subject-desc { font-size:13px; color:#6b7280; margin-bottom:16px; }
+
+    .subject-meta {
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      margin-bottom:10px;
+    }
+
+    .subject-progress {
+      height:8px;
+      background:#eef2ff;
+      border-radius:10px;
+      overflow:hidden;
+      margin-bottom:8px;
+    }
+
+    .subject-progress div {
+      height:100%;
+      background:#6366f1;
+      width:0%;
+    }
+
+    .subject-status {
+      font-size:12px;
+      font-weight:600;
+      color:#6366f1;
+    }
+
+    .btn {
+      display:block;
+      margin-top:30px;
+      padding:12px;
+      text-align:center;
+      background:#6366f1;
+      color:white;
+      border-radius:10px;
+      text-decoration:none;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="page-body">
+  <div class="page-title">My Subjects</div>
+  <div class="page-sub">Track your enrolled subjects and progress.</div>
+
+  <div class="subject-grid">
+
+    <!-- MATH -->
+    <div class="subject-card">
+      <div class="subject-icon">MATH</div>
+      <div class="subject-name">Mathematics</div>
+      <div class="subject-desc">Algebra and problem solving.</div>
+      <div class="subject-meta">
+        <span id="math-lessons"></span>
+        <span id="math-mastery"></span>
+      </div>
+      <div class="subject-progress"><div id="math-progress"></div></div>
+      <div class="subject-status" id="math-status"></div>
+    </div>
+
+    <!-- PHY -->
+    <div class="subject-card">
+      <div class="subject-icon">PHY</div>
+      <div class="subject-name">Physics</div>
+      <div class="subject-desc">Mechanics and motion.</div>
+      <div class="subject-meta">
+        <span id="phy-lessons"></span>
+        <span id="phy-mastery"></span>
+      </div>
+      <div class="subject-progress"><div id="phy-progress"></div></div>
+      <div class="subject-status" id="phy-status"></div>
+    </div>
+
+    <!-- CHEM -->
+    <div class="subject-card">
+      <div class="subject-icon">CHEM</div>
+      <div class="subject-name">Chemistry</div>
+      <div class="subject-desc">Reactions and formulas.</div>
+      <div class="subject-meta">
+        <span id="chem-lessons"></span>
+        <span id="chem-mastery"></span>
+      </div>
+      <div class="subject-progress"><div id="chem-progress"></div></div>
+      <div class="subject-status" id="chem-status"></div>
+    </div>
+
+    <!-- CS -->
+    <div class="subject-card">
+      <div class="subject-icon">CS</div>
+      <div class="subject-name">Computer Science</div>
+      <div class="subject-desc">Programming and DB.</div>
+      <div class="subject-meta">
+        <span id="cs-lessons"></span>
+        <span id="cs-mastery"></span>
+      </div>
+      <div class="subject-progress"><div id="cs-progress"></div></div>
+      <div class="subject-status" id="cs-status"></div>
+    </div>
+
+  </div>
+
+  <a class="btn" href="exam-select.html">Take Exam</a>
+</div>
+
+<script>
+
+// ✅ Step 1: Check login
+let user = localStorage.getItem("currentUser");
+
+if (!user) {
+  alert("Please login first!");
+  window.location.href = "login.html";
+}
+
+// ✅ Step 2: Get user-specific data
+let data = JSON.parse(localStorage.getItem(user));
+
+if (!data) {
+  data = {
+    math:{lessons:0, mastery:0},
+    phy:{lessons:0, mastery:0},
+    chem:{lessons:0, mastery:0},
+    cs:{lessons:0, mastery:0}
+  };
+  localStorage.setItem(user, JSON.stringify(data));
+}
+
+// ✅ Step 3: Update UI
+function update(subject){
+  document.getElementById(subject+"-lessons").innerText = data[subject].lessons + " lessons";
+  document.getElementById(subject+"-mastery").innerText = data[subject].mastery + "% mastery";
+  document.getElementById(subject+"-progress").style.width = data[subject].mastery + "%";
+
+  let status = "Start learning";
+
+  if(data[subject].mastery > 70)
+    status = "Strong subject";
+  else if(data[subject].mastery > 40)
+    status = "Keep practicing";
+
+  document.getElementById(subject+"-status").innerText = status;
+}
+
+// update all
+["math","phy","chem","cs"].forEach(update);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge - Teacher Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+    .page-body { padding:36px 40px; max-width:1200px; margin:0 auto; }
+    .greeting { font-size:26px; font-weight:800; letter-spacing:-.5px; margin-bottom:4px; }
+    .greeting-sub { font-size:15px; color:#6b7280; margin-bottom:28px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:28px; }
+    .stat-card { background:#fff; border-radius:16px; padding:22px; border:1px solid rgba(0,0,0,0.06); box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+    .stat-icon { font-size:26px; margin-bottom:12px; }
+    .stat-val { font-size:30px; font-weight:800; line-height:1; margin-bottom:5px; }
+    .stat-label { font-size:13px; color:#6b7280; }
+    .quick-actions { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+    .qa { background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:16px; padding:22px 18px; text-align:center; text-decoration:none; color:#0d0d1a; transition:all .25s; box-shadow:0 2px 10px rgba(0,0,0,0.04); display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .qa:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(99,102,241,0.12); border-color:#6366f1; }
+    .qa-icon { font-size:30px; }
+    .qa-label { font-size:14px; font-weight:700; }
+    .qa-sub { font-size:12px; color:#6b7280; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .card { background:#fff; border-radius:16px; padding:22px; border:1px solid rgba(0,0,0,0.06); box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+    .card-title { font-size:16px; font-weight:700; color:#0d0d1a; margin-bottom:16px; }
+    .weak-row { margin-bottom:14px; }
+    .weak-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+    .weak-bar { height:8px; background:#f3f4f6; border-radius:100px; overflow:hidden; }
+    .weak-fill { height:100%; border-radius:100px; }
+    .student-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f9fafb; }
+    .student-row:last-child { border-bottom:none; }
+    .s-avt { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; background:linear-gradient(135deg,#6366f1,#ec4899); }
+    .s-name { font-weight:600; font-size:14px; }
+    .s-meta { font-size:12px; color:#6b7280; }
+    .s-score { font-weight:700; font-size:14px; margin-left:auto; }
+    .empty-card { padding:18px; border-radius:14px; background:#fafafe; border:1px dashed rgba(99,102,241,0.22); color:#6b7280; font-size:13px; line-height:1.6; }
+    @media(max-width:900px){ .page-body{padding:20px;} .stats-grid{grid-template-columns:1fr 1fr;} .quick-actions{grid-template-columns:1fr 1fr;} .two-col{grid-template-columns:1fr;} }
+    @media(max-width:600px){ .stats-grid,.quick-actions{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<div id="dash-nav"></div>
+<div class="page-body">
+  <div class="greeting" id="greeting">Good Morning!</div>
+  <div class="greeting-sub">Here's your class overview</div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val" id="stat-students" style="color:#6366f1">0</div><div class="stat-label">Total Students</div></div>
+    <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-val" id="stat-completion" style="color:#10b981">0%</div><div class="stat-label">Completion Rate</div></div>
+    <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-val" id="stat-average" style="color:#f59e0b">0%</div><div class="stat-label">Class Avg Score</div></div>
+    <div class="stat-card"><div class="stat-icon">❓</div><div class="stat-val" id="stat-questions" style="color:#ec4899">0</div><div class="stat-label">Questions in Bank</div></div>
+  </div>
+
+  <div class="quick-actions">
+    <a class="qa" href="teacher-subjects.html"><div class="qa-icon">📚</div><div class="qa-label">Manage Subjects</div><div class="qa-sub">Create and configure</div></a>
+    <a class="qa" href="upload-questions.html"><div class="qa-icon">📤</div><div class="qa-label">Upload Questions</div><div class="qa-sub">Add to question bank</div></a>
+    <a class="qa" href="manage-exams.html"><div class="qa-icon">⚙️</div><div class="qa-label">Manage Exams</div><div class="qa-sub">Create exam sessions</div></a>
+    <a class="qa" href="analytics.html"><div class="qa-icon">📈</div><div class="qa-label">Analytics</div><div class="qa-sub">Performance reports</div></a>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">🎯 Class Weakest Topics</div>
+      <div id="weakest-topics"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 Recent Student Activity</div>
+      <div id="recent-activity"></div>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  initNav('overview');
+
+  const user = getUser();
+  const workspace = getTeacherWorkspace();
+  const overview = getTeacherOverview(workspace);
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+
+  document.getElementById('greeting').textContent = `${g}, ${user.name}! 👨‍🏫`;
+  document.getElementById('stat-students').textContent = overview.totalStudents;
+  document.getElementById('stat-completion').textContent = `${overview.completionRate}%`;
+  document.getElementById('stat-average').textContent = `${overview.classAvgScore}%`;
+  document.getElementById('stat-questions').textContent = overview.totalQuestions;
+
+  const weakestEl = document.getElementById('weakest-topics');
+  if (!overview.weakestTopics.length) {
+    weakestEl.innerHTML = '<div class="empty-card">No class analytics yet. Add questions and start running exams to see weak-topic analysis here.</div>';
+  } else {
+    weakestEl.innerHTML = overview.weakestTopics.map((item, index) => {
+      const colors = [
+        'linear-gradient(90deg,#ef4444,#f87171)',
+        'linear-gradient(90deg,#f59e0b,#fbbf24)',
+        'linear-gradient(90deg,#10b981,#34d399)',
+        'linear-gradient(90deg,#6366f1,#8b5cf6)',
+        'linear-gradient(90deg,#ec4899,#f43f5e)'
+      ];
+      return `
+        <div class="weak-row">
+          <div class="weak-label"><span>${item.name}</span><span style="color:#6b7280">${item.pct}%</span></div>
+          <div class="weak-bar"><div class="weak-fill" style="width:${item.pct}%;background:${colors[index % colors.length]}"></div></div>
+        </div>`;
+    }).join('');
+  }
+
+  const recentEl = document.getElementById('recent-activity');
+  if (!overview.recentActivity.length) {
+    recentEl.innerHTML = '<div class="empty-card">No student activity yet. Once students begin attempting exams, recent activity will appear here.</div>';
+  } else {
+    recentEl.innerHTML = overview.recentActivity.map((item) => `
+      <div class="student-row">
+        <div class="s-avt">${item.name.charAt(0).toUpperCase()}</div>
+        <div><div class="s-name">${item.name}</div><div class="s-meta">${item.meta}</div></div>
+        <div class="s-score" style="color:${item.score >= 80 ? '#10b981' : item.score >= 60 ? '#f59e0b' : '#ef4444'}">${item.score}%</div>
+      </div>`).join('');
+  }
+</script>
+</body>
+</html>

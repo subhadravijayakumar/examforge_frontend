@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExamForge — Exam</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:#f8f8ff; color:#0d0d1a; min-height:100vh; }
+
+    .exam-wrap { max-width:780px; margin:0 auto; padding:32px 20px; }
+
+    .exam-header {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:16px; margin-bottom:20px;
+    }
+    .exam-title { font-size:20px; font-weight:800; }
+    .exam-topic { font-size:13px; color:#6b7280; }
+
+    .level-badge { padding:6px 18px; border-radius:100px; font-size:13px; font-weight:700; }
+    .level-easy   { background:rgba(16,185,129,0.12); color:#059669; border:1px solid rgba(16,185,129,0.3); }
+    .level-medium { background:rgba(245,158,11,0.12); color:#d97706; border:1px solid rgba(245,158,11,0.3); }
+    .level-hard   { background:rgba(239,68,68,0.12);  color:#dc2626; border:1px solid rgba(239,68,68,0.3); }
+
+    .timer { font-size:22px; font-weight:800; color:#0d0d1a; }
+    .timer.warning { color:#f59e0b; animation:pulse 1s infinite; }
+    .timer.danger  { color:#ef4444; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    .progress-wrap {
+      height:6px; background:#e5e7eb;
+      border-radius:100px; margin-bottom:24px; overflow:hidden;
+    }
+    .progress-fill {
+      height:100%; border-radius:100px;
+      background:linear-gradient(90deg,#6366f1,#ec4899);
+      transition:width .4s;
+    }
+
+    .question-card {
+      background:#fff; border-radius:20px;
+      border:1px solid rgba(0,0,0,0.07);
+      padding:36px; box-shadow:0 4px 20px rgba(0,0,0,0.06);
+      margin-bottom:20px;
+      transition:box-shadow .3s;
+    }
+    .question-card.flash-correct { box-shadow:0 0 0 3px #10b981, 0 4px 20px rgba(16,185,129,0.2); }
+    .question-card.flash-wrong   { box-shadow:0 0 0 3px #ef4444, 0 4px 20px rgba(239,68,68,0.2); }
+
+    .q-meta { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+    .q-num  { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:#9ca3af; }
+    .q-tag  { padding:3px 10px; border-radius:6px; background:rgba(99,102,241,0.10); font-size:12px; color:#6366f1; font-weight:600; }
+    .q-marks{ margin-left:auto; padding:3px 10px; border-radius:6px; background:rgba(16,185,129,0.10); font-size:12px; color:#059669; font-weight:700; }
+
+    .question-text { font-size:20px; font-weight:600; line-height:1.5; margin-bottom:24px; }
+
+    .options { display:flex; flex-direction:column; gap:12px; }
+    .option {
+      padding:14px 20px; border-radius:12px;
+      border:2px solid #e5e7eb; cursor:pointer;
+      font-size:15px; transition:all .2s;
+      display:flex; align-items:center; gap:14px;
+      background:#fafafa;
+    }
+    .option:hover:not(.disabled) {
+      border-color:#6366f1;
+      background:rgba(99,102,241,0.04);
+      transform:translateX(4px);
+    }
+    .option.selected { border-color:#6366f1; background:rgba(99,102,241,0.06); }
+    .option.correct  { border-color:#10b981; background:#f0fdf4; color:#065f46; font-weight:600; }
+    .option.wrong    { border-color:#ef4444; background:#fef2f2; color:#991b1b; }
+    .option.disabled { cursor:not-allowed; }
+    .option-key {
+      width:28px; height:28px; border-radius:8px;
+      background:#f3f4f6; font-size:12px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+
+    .explanation {
+      margin-top:14px; padding:12px 16px;
+      background:rgba(99,102,241,0.06);
+      border-radius:10px; font-size:13px;
+      color:#6b7280; border-left:3px solid #6366f1;
+      line-height:1.5;
+    }
+
+    .exam-actions {
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .answered-count { font-size:13px; color:#6b7280; }
+
+    .btn {
+      padding:10px 24px; border-radius:10px; border:none;
+      cursor:pointer; font-family:'Outfit',sans-serif;
+      font-size:14px; font-weight:600; transition:all .2s;
+    }
+    .btn-primary {
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      color:#fff; box-shadow:0 4px 14px rgba(99,102,241,0.3);
+    }
+    .btn-primary:hover { transform:translateY(-2px); }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .btn-ghost {
+      background:transparent; color:#6b7280;
+      border:1px solid #e5e7eb;
+    }
+    .btn-ghost:hover { border-color:#6366f1; color:#6366f1; }
+
+    /* Score tracker */
+    .score-tracker {
+      display:flex; gap:16px; margin-bottom:16px;
+      background:#fff; border-radius:14px;
+      padding:14px 20px; border:1px solid rgba(0,0,0,0.07);
+      flex-wrap:wrap;
+    }
+    .score-item { text-align:center; flex:1; }
+    .score-item-val   { font-size:20px; font-weight:800; line-height:1; margin-bottom:3px; }
+    .score-item-label { font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* Level transition overlay */
+    .level-transition {
+      position:fixed; inset:0;
+      background:rgba(248,248,255,0.97);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:1000; gap:16px;
+      animation:fadeIn .4s ease;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .lt-icon  { font-size:80px; animation:bounce .6s ease; }
+    @keyframes bounce { 0%{transform:scale(0)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+    .lt-title { font-size:36px; font-weight:800; color:#0d0d1a; }
+    .lt-sub   { font-size:16px; color:#6b7280; text-align:center; max-width:340px; }
+
+    .lt-arrow {
+      display:flex; align-items:center; gap:16px;
+      font-size:18px; font-weight:700; margin:4px 0;
+    }
+
+    .lt-marks-info {
+      font-size:14px; font-weight:600; color:#6366f1;
+      padding:6px 18px; border-radius:100px;
+      background:rgba(99,102,241,0.08);
+      border:1px solid rgba(99,102,241,0.2);
+    }
+
+    .lt-continue {
+      padding:14px 36px; border-radius:12px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      color:#fff; font-weight:700; font-size:16px;
+      border:none; cursor:pointer; margin-top:8px;
+      box-shadow:0 6px 20px rgba(99,102,241,0.35);
+      transition:all .2s;
+    }
+    .lt-continue:hover { transform:translateY(-2px); }
+
+    /* End exam summary */
+    .end-overlay {
+      position:fixed; inset:0;
+      background:rgba(248,248,255,0.97);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:1000; gap:12px;
+      animation:fadeIn .4s ease;
+    }
+
+    @media(max-width:600px){
+      .exam-wrap { padding:20px 16px; }
+      .question-text { font-size:16px; }
+      .option { font-size:13px; padding:12px 14px; }
+      .lt-title { font-size:26px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="exam-wrap">
+
+  <!-- Header -->
+  <div class="exam-header">
+    <div>
+      <div class="exam-title" id="exam-title">Loading...</div>
+      <div class="exam-topic" id="exam-topic"></div>
+    </div>
+    <div class="level-badge level-easy" id="level-badge">🟢 Easy Level</div>
+    <div class="timer" id="timer">⏱ 30:00</div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <!-- Score tracker -->
+  <div class="score-tracker">
+    <div class="score-item">
+      <div class="score-item-val" id="track-marks" style="color:#6366f1">0</div>
+      <div class="score-item-label">Marks</div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-val" id="track-correct" style="color:#10b981">0</div>
+      <div class="score-item-label">Correct</div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-val" id="track-wrong" style="color:#ef4444">0</div>
+      <div class="score-item-label">Wrong</div>
+    </div>
+    <div class="score-item">
+      <div class="score-item-val" id="track-level" style="color:#f59e0b">Easy</div>
+      <div class="score-item-label">Current Level</div>
+    </div>
+  </div>
+
+  <!-- Question card -->
+  <div class="question-card" id="question-card">
+    <div class="q-meta">
+      <div class="q-num"   id="q-num">Q 1 of 9</div>
+      <div class="q-tag"   id="q-tag">Subject</div>
+      <div class="q-marks" id="q-marks">+1 mark</div>
+    </div>
+    <div class="question-text" id="question-text">Loading...</div>
+    <div class="options"       id="options-container"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="exam-actions">
+    <div class="answered-count" id="answered-count">0 answered</div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-ghost"   onclick="skipQuestion()">Skip →</button>
+      <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>Next →</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="shared.js"></script>
+<script>
+
+// ══════════════════════════════════════════
+//  QUESTION BANK
+// ══════════════════════════════════════════
+const QUESTIONS = {
+  Mathematics: {
+    easy: [
+      {q:"What is 15 × 8?",               opts:["100","110","120","130"],     ans:2, exp:"15 × 8 = 120"},
+      {q:"What is the square root of 144?",opts:["10","11","12","13"],         ans:2, exp:"√144 = 12"},
+      {q:"Solve: 5x = 25. What is x?",    opts:["3","4","5","6"],             ans:2, exp:"x = 25/5 = 5"},
+      {q:"What is 30% of 200?",           opts:["50","60","70","80"],         ans:1, exp:"30/100 × 200 = 60"},
+      {q:"What is the value of π (pi)?",  opts:["2.14","3.14","4.14","1.14"],ans:1, exp:"π ≈ 3.14159"},
+    ],
+    medium: [
+      {q:"Area of circle with radius 7? (π=22/7)",   opts:["154","144","164","134"],                    ans:0, exp:"A = πr² = 154"},
+      {q:"Solve: 2x² - 8 = 0",                       opts:["±2","±3","±4","±1"],                        ans:0, exp:"x² = 4, x = ±2"},
+      {q:"LCM of 12 and 18",                         opts:["24","36","48","54"],                        ans:1, exp:"LCM(12,18) = 36"},
+      {q:"A = {1,2,3,4}, B = {3,4,5,6}. What is A∩B?",opts:["{1,2}","{3,4}","{5,6}","{1,2,5,6}"],    ans:1, exp:"Common elements: {3,4}"},
+      {q:"If a triangle has sides 3, 4, 5 — what type?",opts:["Equilateral","Isosceles","Right-angled","Obtuse"],ans:2,exp:"3²+4²=5² → right-angled"},
+    ],
+    hard: [
+      {q:"Sum of first 100 natural numbers",          opts:["4950","5050","5150","4850"],               ans:1, exp:"100×101/2 = 5050"},
+      {q:"If log₂(x) = 5, what is x?",               opts:["16","32","64","128"],                      ans:1, exp:"x = 2⁵ = 32"},
+      {q:"Derivative of x³ + 2x² - 5x + 1",          opts:["3x²+4x-5","3x²+2x-5","x²+4x-5","3x+4"], ans:0, exp:"d/dx = 3x²+4x-5"},
+      {q:"In a GP, first term=2, ratio=3. 5th term?", opts:["162","243","486","54"],                   ans:0, exp:"T₅ = 2×3⁴ = 162"},
+      {q:"∫(3x² + 2x)dx = ?",                        opts:["x³+x²+C","6x+2+C","x²+2x+C","3x+C"],    ans:0, exp:"Integrate term by term: x³+x²+C"},
+    ]
+  },
+  Physics: {
+    easy: [
+      {q:"SI unit of force?",              opts:["Watt","Joule","Newton","Pascal"],                     ans:2, exp:"Force = Newtons (N)"},
+      {q:"Speed of light in vacuum?",      opts:["3×10⁶ m/s","3×10⁸ m/s","3×10¹⁰ m/s","3×10⁴ m/s"],ans:1, exp:"c = 3×10⁸ m/s"},
+      {q:"F=ma is which Newton's law?",    opts:["1st","2nd","3rd","Law of Gravity"],                  ans:1, exp:"Newton's 2nd law"},
+      {q:"Unit of electric current?",      opts:["Volt","Ohm","Ampere","Watt"],                        ans:2, exp:"Current = Amperes (A)"},
+      {q:"What does E = mc² represent?",   opts:["Energy-Mass","Entropy","Electric field","None"],     ans:0, exp:"Einstein's mass-energy equivalence"},
+    ],
+    medium: [
+      {q:"Car travels 100m in 10s. Velocity?",opts:["5 m/s","10 m/s","15 m/s","20 m/s"],             ans:1, exp:"v = d/t = 100/10 = 10 m/s"},
+      {q:"Ohm's law: V = ?",               opts:["I/R","IR","I+R","I-R"],                             ans:1, exp:"V = I × R"},
+      {q:"KE formula is:",                 opts:["mgh","½mv²","mv","Fd"],                             ans:1, exp:"KE = ½mv²"},
+      {q:"Wavelength when frequency doubles?",opts:["Doubles","Halves","Same","Quadruples"],           ans:1, exp:"v = fλ, if f doubles λ halves"},
+      {q:"Transformer works on?",          opts:["Photoelectric","Mutual induction","Self induction","Fission"],ans:1,exp:"Mutual electromagnetic induction"},
+    ],
+    hard: [
+      {q:"Projectile at 45°. Velocity at max height?",opts:["Zero","Half initial","Horizontal component","Vertical"],ans:2,exp:"At max height, only horizontal velocity remains"},
+      {q:"Carnot engine 300K to 600K, efficiency?",   opts:["25%","50%","75%","100%"],                ans:1, exp:"η = 1 - 300/600 = 50%"},
+      {q:"Sky is blue due to?",                       opts:["Reflection","Refraction","Rayleigh scattering","Diffraction"],ans:2,exp:"Rayleigh scattering of shorter wavelengths"},
+      {q:"de Broglie wavelength formula?",            opts:["λ=h/mv","λ=mv/h","λ=hv/m","λ=m/hv"],   ans:0, exp:"λ = h/p = h/(mv)"},
+      {q:"Pendulum period depends on?",               opts:["Mass","Amplitude","Length & g","All"],   ans:2, exp:"T = 2π√(L/g)"},
+    ]
+  },
+  'Computer Science': {
+    easy: [
+      {q:"CPU stands for?",                opts:["Central Processing Unit","Computer Personal Unit","Core Processing Utility","Central Program Unit"],ans:0,exp:"Central Processing Unit"},
+      {q:"Output of print(2**3) in Python?",opts:["6","8","9","16"],                                  ans:1, exp:"** is exponentiation: 2³ = 8"},
+      {q:"LIFO data structure?",           opts:["Queue","Stack","Array","Tree"],                     ans:1, exp:"Stack = Last In First Out"},
+      {q:"RAM stands for?",                opts:["Random Access Memory","Read Access Memory","Random Assigned Memory","Read Assign Mode"],ans:0,exp:"Random Access Memory"},
+      {q:"NOT a programming language?",    opts:["Python","Java","HTML","Photoshop"],                 ans:3, exp:"Photoshop is software, not a language"},
+    ],
+    medium: [
+      {q:"Time complexity of binary search?",opts:["O(n)","O(n²)","O(log n)","O(1)"],                ans:2, exp:"Binary search halves search space: O(log n)"},
+      {q:"Encapsulation means?",           opts:["Hiding implementation","Multiple inheritance","Overriding","Creating objects"],ans:0,exp:"Bundling data and hiding internals"},
+      {q:"HTTP method to update data?",    opts:["GET","POST","PUT","DELETE"],                        ans:2, exp:"PUT updates/replaces existing resources"},
+      {q:"5 & 3 in binary = ?",           opts:["1","7","8","2"],                                    ans:0, exp:"5=101, 3=011, AND=001=1"},
+      {q:"SQL stands for?",               opts:["Simple Query Language","Structured Query Language","System Query Logic","Structured Question Language"],ans:1,exp:"Structured Query Language"},
+    ],
+    hard: [
+      {q:"Best average-case sorting algorithm?",opts:["Bubble O(n²)","Merge O(n log n)","Insertion O(n²)","Selection O(n²)"],ans:1,exp:"Merge Sort = O(n log n)"},
+      {q:"Singleton pattern does what?",   opts:["Factory pattern","Observer pattern","One instance only","Strategy pattern"],ans:2,exp:"Restricts class to one instance"},
+      {q:"Deadlock in OS means?",          opts:["System crash","Circular wait between processes","Memory overflow","CPU overload"],ans:1,exp:"Two processes waiting for each other's resources"},
+      {q:"REST API stateless means?",      opts:["No database","Server stores no session","Only GET","No auth"],ans:1,exp:"Each request contains all info; server stores no state"},
+      {q:"B-tree of order m, max children?",opts:["m","m-1","2m","m/2"],                             ans:0, exp:"B-tree of order m has max m children"},
+    ]
+  },
+  Chemistry: {
+    easy: [
+      {q:"Chemical symbol of Gold?",       opts:["Go","Gd","Au","Ag"],                               ans:2, exp:"Au from Latin 'Aurum'"},
+      {q:"What is H₂O?",                  opts:["Hydrogen","Oxygen","Water","Hydrogen Peroxide"],    ans:2, exp:"H₂O = Water"},
+      {q:"Atomic number of Carbon?",       opts:["4","6","8","12"],                                  ans:1, exp:"Carbon has 6 protons"},
+      {q:"pH of pure water?",             opts:["5","6","7","8"],                                    ans:2, exp:"Pure water pH = 7 (neutral)"},
+      {q:"Symbol for Sodium?",            opts:["So","Sd","Na","Nm"],                                ans:2, exp:"Na from Latin 'Natrium'"},
+    ],
+    medium: [
+      {q:"Number of electrons in Oxygen?", opts:["6","7","8","9"],                                   ans:2, exp:"Oxygen atomic number = 8"},
+      {q:"What is an acid?",              opts:["Proton donor","Proton acceptor","Electron donor","Neutral"],ans:0,exp:"Acid = proton (H⁺) donor"},
+      {q:"Products of photosynthesis?",   opts:["CO₂ + H₂O","O₂ + Glucose","CO₂ + O₂","H₂O + CO₂"],ans:1,exp:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂"},
+      {q:"Avogadro's number?",            opts:["6.022×10²³","3.14×10²³","9.8×10²³","1.6×10²³"],   ans:0, exp:"6.022×10²³ particles per mole"},
+      {q:"Valency of Chlorine?",          opts:["1","2","3","4"],                                    ans:0, exp:"Chlorine valency = 1"},
+    ],
+    hard: [
+      {q:"Hybridisation of carbon in ethylene?",opts:["sp","sp²","sp³","sp³d"],                      ans:1, exp:"Double bond → sp² hybridisation"},
+      {q:"Rate determining step in reaction?",  opts:["Fastest step","Slowest step","Last step","First step"],ans:1,exp:"The slowest step determines overall rate"},
+      {q:"Nernst equation used for?",          opts:["Rate constant","Cell potential","Enthalpy","Entropy"],ans:1,exp:"E = E° - (RT/nF)lnQ"},
+      {q:"Le Chatelier's principle relates to?",opts:["Rate","Equilibrium shift","Entropy","Enthalpy"],ans:1,exp:"System shifts to counteract a change"},
+      {q:"Entropy in spontaneous reaction?",   opts:["Decreases","Increases","Stays same","Becomes zero"],ans:1,exp:"ΔS > 0 for spontaneous processes"},
+    ]
+  },
+  Biology: {
+    easy: [
+      {q:"Powerhouse of the cell?",        opts:["Nucleus","Ribosome","Mitochondria","Chloroplast"],  ans:2, exp:"Mitochondria produces ATP"},
+      {q:"Basic unit of life?",            opts:["Atom","Molecule","Cell","Tissue"],                 ans:2, exp:"Cell is the basic structural unit of life"},
+      {q:"Photosynthesis occurs in?",      opts:["Mitochondria","Nucleus","Ribosome","Chloroplast"], ans:3, exp:"Chloroplast contains chlorophyll"},
+      {q:"DNA stands for?",               opts:["Deoxyribonucleic Acid","Diribonucleic Acid","Deoxyribonicle Acid","None"],ans:0,exp:"Deoxyribonucleic Acid"},
+      {q:"How many chromosomes in human?", opts:["23","44","46","48"],                               ans:2, exp:"Humans have 46 chromosomes (23 pairs)"},
+    ],
+    medium: [
+      {q:"Process of cell division?",      opts:["Meiosis","Mitosis","Both","Osmosis"],              ans:1, exp:"Mitosis = general cell division"},
+      {q:"Blood type with no antigens?",   opts:["A","B","AB","O"],                                  ans:3, exp:"Type O has no A or B antigens"},
+      {q:"Enzyme that digests protein?",   opts:["Amylase","Lipase","Protease","Lactase"],           ans:2, exp:"Protease breaks down proteins"},
+      {q:"What carries oxygen in blood?",  opts:["White blood cells","Plasma","Haemoglobin","Platelets"],ans:2,exp:"Haemoglobin in red blood cells"},
+      {q:"Genetic material in virus?",     opts:["DNA only","RNA only","DNA or RNA","Neither"],      ans:2, exp:"Viruses contain DNA or RNA"},
+    ],
+    hard: [
+      {q:"Krebs cycle occurs in?",         opts:["Cytoplasm","Nucleus","Mitochondria matrix","Ribosome"],ans:2,exp:"Krebs cycle in mitochondria matrix"},
+      {q:"Crossing over occurs in?",       opts:["Mitosis","Meiosis I","Meiosis II","Interphase"],   ans:1, exp:"Crossing over in Prophase I of Meiosis"},
+      {q:"Lac operon present in?",         opts:["Eukaryotes","Prokaryotes","Both","Viruses"],       ans:1, exp:"Lac operon is in E. coli (prokaryote)"},
+      {q:"Hardy-Weinberg principle assumes?",opts:["Small population","No mutation","Natural selection","Migration"],ans:1,exp:"HWE requires no mutation, random mating, large population"},
+      {q:"Satellite DNA is:",              opts:["Coding DNA","Highly repetitive","tRNA gene","Mitochondrial"],ans:1,exp:"Satellite DNA = highly repetitive non-coding sequences"},
+    ]
+  },
+  History: {
+    easy: [
+      {q:"Who discovered America in 1492?",opts:["Vasco da Gama","Columbus","Magellan","Cabot"],     ans:1, exp:"Christopher Columbus in 1492"},
+      {q:"French Revolution year?",        opts:["1776","1789","1815","1848"],                       ans:1, exp:"French Revolution began 1789"},
+      {q:"Who was the first US President?",opts:["Lincoln","Washington","Jefferson","Adams"],         ans:1, exp:"George Washington, 1789"},
+      {q:"World War II ended in?",         opts:["1943","1944","1945","1946"],                       ans:2, exp:"WWII ended in 1945"},
+      {q:"Great Wall of China built by?",  opts:["Mongols","Ming Dynasty","Han Dynasty","Qin Dynasty"],ans:3,exp:"Originally built by Qin Dynasty"},
+    ],
+    medium: [
+      {q:"Industrial Revolution started in?",opts:["France","Germany","Britain","USA"],              ans:2, exp:"Industrial Revolution began in Britain ~1760"},
+      {q:"Magna Carta signed in?",         opts:["1066","1215","1348","1492"],                       ans:1, exp:"Magna Carta signed 1215"},
+      {q:"Russian Revolution year?",       opts:["1905","1914","1917","1921"],                       ans:2, exp:"Bolshevik Revolution 1917"},
+      {q:"Who led Indian independence?",   opts:["Nehru","Gandhi","Bose","Patel"],                   ans:1, exp:"Mahatma Gandhi led the independence movement"},
+      {q:"Berlin Wall fell in?",           opts:["1987","1988","1989","1990"],                       ans:2, exp:"Berlin Wall fell November 1989"},
+    ],
+    hard: [
+      {q:"Treaty ending WWI?",             opts:["Treaty of Paris","Treaty of Versailles","Treaty of Ghent","Treaty of Utrecht"],ans:1,exp:"Treaty of Versailles, 1919"},
+      {q:"Cold War period?",               opts:["1939-1945","1945-1991","1950-1980","1960-1990"],   ans:1, exp:"Cold War: 1945-1991"},
+      {q:"Cause of WWI?",                  opts:["German invasion","Assassination of Archduke Franz Ferdinand","Treaty dispute","Colonial rivalry"],ans:1,exp:"Assassination of Archduke Franz Ferdinand, 1914"},
+      {q:"First country to give women right to vote?",opts:["USA","UK","New Zealand","Australia"],   ans:2, exp:"New Zealand, 1893"},
+      {q:"Silk Road connected?",           opts:["Europe-Africa","China-Mediterranean","India-Arabia","All of above"],ans:1,exp:"Silk Road connected China to Mediterranean"},
+    ]
+  },
+  Geography: {
+    easy: [
+      {q:"Largest continent?",             opts:["Africa","Europe","Asia","Australia"],               ans:2, exp:"Asia is the largest continent"},
+      {q:"Longest river in world?",        opts:["Amazon","Yangtze","Nile","Mississippi"],            ans:2, exp:"Nile River (~6,650 km)"},
+      {q:"Capital of Australia?",          opts:["Sydney","Melbourne","Canberra","Perth"],            ans:2, exp:"Canberra is Australia's capital"},
+      {q:"Highest mountain?",             opts:["K2","Kangchenjunga","Everest","Lhotse"],            ans:2, exp:"Mount Everest at 8,849m"},
+      {q:"Largest ocean?",                opts:["Atlantic","Indian","Arctic","Pacific"],              ans:3, exp:"Pacific Ocean is the largest"},
+    ],
+    medium: [
+      {q:"Amazon rainforest is in?",       opts:["Africa","Asia","South America","Australia"],        ans:2, exp:"Amazon is in South America (Brazil)"},
+      {q:"Ring of Fire refers to?",        opts:["Hot desert","Volcanic zone","Coral reef","Mountain range"],ans:1,exp:"Ring of Fire = Pacific volcanic/earthquake zone"},
+      {q:"Tropic of Cancer passes through?",opts:["India","Brazil","Australia","All above"],          ans:3, exp:"Tropic of Cancer passes through India, Mexico, Egypt etc."},
+      {q:"Country with most time zones?",  opts:["USA","Russia","China","France"],                   ans:3, exp:"France has 12 time zones (overseas territories)"},
+      {q:"Sahara Desert is in?",          opts:["Asia","South America","North Africa","Southern Africa"],ans:2,exp:"Sahara is in North Africa"},
+    ],
+    hard: [
+      {q:"Country with most freshwater?",  opts:["USA","Canada","Brazil","Russia"],                  ans:2, exp:"Brazil has ~12% of world's freshwater"},
+      {q:"Foehn effect is?",              opts:["Sea breeze","Rain shadow warm wind","Cold front","Mountain fog"],ans:1,exp:"Warm dry wind on leeward side of mountains"},
+      {q:"Isohyet lines connect?",        opts:["Equal temperature","Equal rainfall","Equal pressure","Equal altitude"],ans:1,exp:"Isohyets = lines of equal rainfall"},
+      {q:"Coriolis effect causes?",       opts:["Tides","Wind deflection","Earthquakes","Tsunamis"], ans:1, exp:"Earth's rotation deflects moving air/water"},
+      {q:"Country with most UNESCO sites?",opts:["China","France","Italy","Spain"],                  ans:2, exp:"Italy has the most UNESCO World Heritage Sites"},
+    ]
+  },
+  English: {
+    easy: [
+      {q:"Synonym of 'Happy'?",            opts:["Sad","Joyful","Angry","Tired"],                    ans:1, exp:"Joyful means happy"},
+      {q:"Antonym of 'Big'?",             opts:["Large","Huge","Small","Tall"],                     ans:2, exp:"Small is the opposite of Big"},
+      {q:"Noun in: 'The dog runs fast'?",  opts:["The","dog","runs","fast"],                        ans:1, exp:"'dog' is the noun (subject)"},
+      {q:"'She ____ to school daily.'",    opts:["go","goes","going","gone"],                       ans:1, exp:"Third person singular: 'goes'"},
+      {q:"Plural of 'child'?",            opts:["Childs","Children","Childes","Child"],              ans:1, exp:"Irregular plural: children"},
+    ],
+    medium: [
+      {q:"Metaphor example?",              opts:["As brave as a lion","Time is money","He ran quickly","The sky is blue"],ans:1,exp:"'Time is money' is a direct metaphor"},
+      {q:"Passive: 'She wrote the letter'?",opts:["The letter was written by her","She had written","The letter is written","She writes"],ans:0,exp:"Passive voice: The letter was written by her"},
+      {q:"Identify the adverb: 'He speaks loudly'?",opts:["He","speaks","loudly","None"],           ans:2, exp:"'loudly' modifies the verb 'speaks'"},
+      {q:"'Whom' is used as?",            opts:["Subject","Object","Possessive","Reflexive"],       ans:1, exp:"'Whom' is the object form of 'who'"},
+      {q:"Simile example?",               opts:["He is a lion","She sings like a bird","The wind howled","Time flew"],ans:1,exp:"'Like a bird' uses 'like' → simile"},
+    ],
+    hard: [
+      {q:"Synecdoche example?",            opts:["The pen is mightier","All hands on deck","Time is a thief","Life is a journey"],ans:1,exp:"'All hands' = all sailors → part for whole"},
+      {q:"Chiasmus in 'Ask not what your country can do...'?",opts:["Metaphor","Alliteration","Chiasmus","Hyperbole"],ans:2,exp:"Chiasmus = reversed grammatical structure"},
+      {q:"Stream of consciousness technique used by?",opts:["Dickens","Woolf","Austen","Hardy"],    ans:1, exp:"Virginia Woolf pioneered stream of consciousness"},
+      {q:"Bildungsroman is?",             opts:["War novel","Coming-of-age novel","Mystery novel","Romance novel"],ans:1,exp:"Bildungsroman = coming-of-age/growth narrative"},
+      {q:"Unreliable narrator means?",    opts:["Narrator lies","Narrator's credibility is compromised","First person only","Third person only"],ans:1,exp:"Unreliable narrator cannot be fully trusted"},
+    ]
+  }
+};
+
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
+const MARKS         = { easy:1, medium:3, hard:5 };
+const MAX_QUESTIONS = 9;
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let state = {
+  subject: '',
+  level: 'easy',
+  questionCount: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  totalMarks: 0,
+  maxMarks: MAX_QUESTIONS * 5,
+  lastAnswerCorrect: false,
+  currentQ: null,
+  locked: false,
+  usedQs: { easy:[], medium:[], hard:[] },
+  levelStats: { easy:{correct:0,wrong:0,marks:0}, medium:{correct:0,wrong:0,marks:0}, hard:{correct:0,wrong:0,marks:0} },
+  timer: null,
+  timeLeft: 30 * 60
+};
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.onload = function() {
+  const params   = new URLSearchParams(window.location.search);
+  state.subject  = params.get('subject') || 'Mathematics';
+
+  // fallback if subject not in bank
+  if (!QUESTIONS[state.subject]) {
+    state.subject = 'Mathematics';
+  }
+
+  document.getElementById('exam-title').textContent = state.subject + ' Adaptive Exam';
+  document.getElementById('exam-topic').textContent  = 'Subject: ' + state.subject;
+
+  loadQuestion();
+  startTimer();
+};
+
+// ══════════════════════════════════════════
+//  GET NEXT QUESTION
+// ══════════════════════════════════════════
+function getNextQuestion(level) {
+  const pool = (QUESTIONS[state.subject]?.[level] || [])
+    .filter((_, i) => !state.usedQs[level].includes(i));
+
+  if (!pool.length) {
+    // reset used questions for this level if exhausted
+    state.usedQs[level] = [];
+    return QUESTIONS[state.subject]?.[level]?.[0] || null;
+  }
+
+  const ridx    = Math.floor(Math.random() * pool.length);
+  const q       = pool[ridx];
+  const origIdx = (QUESTIONS[state.subject]?.[level] || []).indexOf(q);
+  state.usedQs[level].push(origIdx);
+  return q;
+}
+
+// ══════════════════════════════════════════
+//  LOAD QUESTION
+// ══════════════════════════════════════════
+function loadQuestion() {
+  if (state.questionCount >= MAX_QUESTIONS) {
+    endExam();
+    return;
+  }
+
+  // Update progress
+  const pct = (state.questionCount / MAX_QUESTIONS) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('q-num').textContent = 'Q ' + (state.questionCount + 1) + ' of ' + MAX_QUESTIONS;
+
+  // Update level badge
+  const badges  = { easy:'🟢 Easy Level', medium:'🟡 Medium Level', hard:'🔴 Hard Level' };
+  const classes  = { easy:'level-easy',   medium:'level-medium',   hard:'level-hard' };
+  const badge    = document.getElementById('level-badge');
+  badge.textContent = badges[state.level];
+  badge.className   = 'level-badge ' + classes[state.level];
+
+  // Update marks tag
+  document.getElementById('q-marks').textContent = '+' + MARKS[state.level] + ' mark' + (MARKS[state.level] > 1 ? 's' : '');
+  document.getElementById('q-tag').textContent   = state.subject;
+
+  // Update score tracker
+  updateTracker();
+
+  // Get question
+  const q = getNextQuestion(state.level);
+  if (!q) { endExam(); return; }
+  state.currentQ = q;
+  state.locked   = false;
+
+  // Render question
+  document.getElementById('question-text').textContent = q.q;
+
+  const keys = ['A', 'B', 'C', 'D'];
+  document.getElementById('options-container').innerHTML =
+    q.opts.map((o, i) => `
+      <div class="option" id="opt-${i}" onclick="selectOption(${i})">
+        <span class="option-key">${keys[i]}</span>
+        <span>${o}</span>
+      </div>`).join('');
+
+  // Reset button
+  document.getElementById('next-btn').disabled  = true;
+  document.getElementById('next-btn').textContent =
+    (state.questionCount + 1) >= MAX_QUESTIONS ? 'Finish' : 'Next →';
+  document.getElementById('answered-count').textContent = state.correctCount + state.wrongCount + ' answered';
+
+  // Remove flash
+  const card = document.getElementById('question-card');
+  card.classList.remove('flash-correct', 'flash-wrong');
+}
+
+// ══════════════════════════════════════════
+//  SELECT OPTION
+// ══════════════════════════════════════════
+function selectOption(idx) {
+  if (state.locked) return;
+  state.locked = true;
+
+  const correct = state.currentQ.ans === idx;
+  state.lastAnswerCorrect = correct;
+  state.questionCount++;
+
+  // Flash card
+  const card = document.getElementById('question-card');
+  if (correct) {
+    card.classList.add('flash-correct');
+    state.correctCount++;
+    state.totalMarks += MARKS[state.level];
+    state.levelStats[state.level].correct++;
+    state.levelStats[state.level].marks += MARKS[state.level];
+  } else {
+    card.classList.add('flash-wrong');
+    state.wrongCount++;
+    state.levelStats[state.level].wrong++;
+  }
+
+  // Highlight options
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.add('disabled');
+    if (i === idx) el.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct && i === state.currentQ.ans) el.classList.add('correct');
+  });
+
+  // Show explanation if wrong
+  if (!correct && state.currentQ.exp) {
+    setTimeout(() => {
+      const exp     = document.createElement('div');
+      exp.className = 'explanation';
+      exp.innerHTML = '💡 ' + state.currentQ.exp;
+      document.getElementById('options-container').appendChild(exp);
+    }, 300);
+  }
+
+  updateTracker();
+  document.getElementById('next-btn').disabled = false;
+}
+
+// ══════════════════════════════════════════
+//  NEXT QUESTION — ADAPTIVE LOGIC
+// ══════════════════════════════════════════
+function nextQuestion() {
+  if (state.questionCount >= MAX_QUESTIONS) {
+    endExam();
+    return;
+  }
+
+  const wasCorrect = state.lastAnswerCorrect;
+
+  if (state.level === 'easy') {
+    if (wasCorrect) {
+      // ✅ Easy correct → Level UP to Medium
+      showLevelTransition('easy', 'medium', true,
+        '🎉 Correct! Level Up!',
+        'You answered correctly! Moving to Medium level.');
+    } else {
+      // ❌ Easy wrong → Stay at Easy
+      loadQuestion();
+    }
+    return;
+  }
+
+  if (state.level === 'medium') {
+    if (wasCorrect) {
+      // ✅ Medium correct → Level UP to Hard
+      showLevelTransition('medium', 'hard', true,
+        '🔥 Excellent! Level Up!',
+        'Amazing! Moving to Hard level — 5 marks per question!');
+    } else {
+      // ❌ Medium wrong → Go DOWN to Easy
+      showLevelTransition('medium', 'easy', false,
+        '💪 Keep Going!',
+        'Going back to Easy level — build your foundation!');
+    }
+    return;
+  }
+
+  if (state.level === 'hard') {
+    if (wasCorrect) {
+      // ✅ Hard correct → Stay at Hard
+      loadQuestion();
+    } else {
+      // ❌ Hard wrong → Go DOWN to Medium
+      showLevelTransition('hard', 'medium', false,
+        '📚 Good Try!',
+        'Going back to Medium level — keep practising!');
+    }
+    return;
+  }
+}
+
+// ══════════════════════════════════════════
+//  SKIP QUESTION
+// ══════════════════════════════════════════
+function skipQuestion() {
+  if (state.locked) return;
+  state.questionCount++;
+  state.wrongCount++;
+  state.lastAnswerCorrect = false;
+  updateTracker();
+
+  if (state.questionCount >= MAX_QUESTIONS) {
+    endExam();
+    return;
+  }
+
+  // Skipping counts as wrong → apply same down-level logic
+  if (state.level === 'medium') {
+    showLevelTransition('medium', 'easy', false, '⏭️ Skipped!', 'Going back to Easy level.');
+  } else if (state.level === 'hard') {
+    showLevelTransition('hard', 'medium', false, '⏭️ Skipped!', 'Going back to Medium level.');
+  } else {
+    loadQuestion();
+  }
+}
+
+// ══════════════════════════════════════════
+//  LEVEL TRANSITION OVERLAY
+// ══════════════════════════════════════════
+function showLevelTransition(from, to, goingUp, title, subtitle) {
+  const div   = document.createElement('div');
+  div.className = 'level-transition';
+
+  const names  = { easy:'Easy', medium:'Medium', hard:'Hard' };
+  const icons  = { easy:'🟢',  medium:'🟡',     hard:'🔴' };
+  const colors = { easy:'#10b981', medium:'#f59e0b', hard:'#ef4444' };
+
+  div.innerHTML = `
+    <div class="lt-icon">${goingUp ? '🚀' : '📖'}</div>
+    <div class="lt-title">${title}</div>
+    <div class="lt-sub">${subtitle}</div>
+    <div class="lt-arrow">
+      <span style="color:${colors[from]}">${icons[from]} ${names[from]}</span>
+      <span style="color:#9ca3af;font-size:22px">${goingUp ? '→' : '←'}</span>
+      <span style="color:${colors[to]}">${icons[to]} ${names[to]}</span>
+    </div>
+    <div class="lt-marks-info">+${MARKS[to]} mark${MARKS[to] > 1 ? 's' : ''} per correct answer</div>
+    <button class="lt-continue"
+      onclick="continueExam('${to}', this.parentElement)">
+      Continue →
+    </button>`;
+
+  document.body.appendChild(div);
+}
+
+function continueExam(level, el) {
+  state.level = level;
+  document.body.removeChild(el);
+  loadQuestion();
+}
+
+// ══════════════════════════════════════════
+//  UPDATE SCORE TRACKER
+// ══════════════════════════════════════════
+function updateTracker() {
+  document.getElementById('track-marks').textContent   = state.totalMarks;
+  document.getElementById('track-correct').textContent = state.correctCount;
+  document.getElementById('track-wrong').textContent   = state.wrongCount;
+  document.getElementById('track-level').textContent   =
+    state.level.charAt(0).toUpperCase() + state.level.slice(1);
+}
+
+// ══════════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════════
+function startTimer() {
+  if (state.timer) clearInterval(state.timer);
+  state.timer = setInterval(() => {
+    state.timeLeft--;
+    const m  = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
+    const s  = (state.timeLeft % 60).toString().padStart(2, '0');
+    const el = document.getElementById('timer');
+    el.textContent = '⏱ ' + m + ':' + s;
+    if (state.timeLeft <= 300) el.className = 'timer warning';
+    if (state.timeLeft <= 60)  el.className = 'timer danger';
+    if (state.timeLeft <= 0)   { clearInterval(state.timer); endExam(); }
+  }, 1000);
+}
+
+// ══════════════════════════════════════════
+//  END EXAM
+// ══════════════════════════════════════════
+function endExam() {
+  clearInterval(state.timer);
+
+  const pct = Math.round((state.totalMarks / (MAX_QUESTIONS * MARKS.hard)) * 100);
+
+  // Determine highest level reached
+  const levelReached =
+    state.levelStats.hard.correct > 0   ? 'Hard'   :
+    state.levelStats.medium.correct > 0 ? 'Medium' : 'Easy';
+
+  const result = {
+    subject:       state.subject,
+    totalMarks:    state.totalMarks,
+    maxMarks:      MAX_QUESTIONS * MARKS.hard,
+    percentage:    pct,
+    correctCount:  state.correctCount,
+    wrongCount:    state.wrongCount,
+    levelReached:  levelReached,
+    easyCorrect:   state.levelStats.easy.correct,
+    mediumCorrect: state.levelStats.medium.correct,
+    hardCorrect:   state.levelStats.hard.correct,
+    easyMarks:     state.levelStats.easy.marks,
+    mediumMarks:   state.levelStats.medium.marks,
+    hardMarks:     state.levelStats.hard.marks,
+    timeLeft:      state.timeLeft,
+    timeTakenSeconds: (30 * 60) - state.timeLeft,
+    completedAt:   new Date().toISOString()
+  };
+
+  sessionStorage.setItem('ef_result', JSON.stringify(result));
+  updateStudentProgressFromResult(result);
+
+  window.location.href = 'result.html';
+}
+
+</script>
+</body>
+</html>
