@@ -89,59 +89,122 @@
 <script src="shared.js"></script>
 <script>
   initNav('results');
-  const r = JSON.parse(sessionStorage.getItem('ef_result')||'{}');
-  if (!r.subject) { window.location.href='student-dashboard.html'; }
+
+  // ✅ Get result
+  const r = JSON.parse(sessionStorage.getItem('ef_result') || '{}');
+
+  if (!r.subject) {
+    window.location.href = 'student-dashboard.html';
+  }
+
+  // ✅ ----------- 🔥 SAVE RESULT PER USER -----------
+
+  const currentUser = localStorage.getItem("currentUser");
+
+  if (currentUser && r.subject) {
+    let userData = JSON.parse(localStorage.getItem(currentUser)) || {};
+
+    // store subject-wise percentage
+    userData[r.subject] = r.percentage;
+
+    // optional: store marks also
+    userData[r.subject + "_marks"] = r.totalMarks;
+
+    localStorage.setItem(currentUser, JSON.stringify(userData));
+  }
+
+  // ✅ ----------- UI DISPLAY -----------
 
   const pct = r.percentage || 0;
-  const emoji = pct>=80?'🏆':pct>=60?'🎉':pct>=40?'💪':'📚';
-  const title = pct>=80?'Outstanding!':pct>=60?'Great Job!':pct>=40?'Good Effort!':'Keep Practicing!';
+
+  const emoji = pct >= 80 ? '🏆' : pct >= 60 ? '🎉' : pct >= 40 ? '💪' : '📚';
+  const title = pct >= 80 ? 'Outstanding!' : pct >= 60 ? 'Great Job!' : pct >= 40 ? 'Good Effort!' : 'Keep Practicing!';
+
   document.getElementById('result-emoji').textContent = emoji;
   document.getElementById('result-title').textContent = title;
-  document.getElementById('result-sub').textContent   = r.subject + ' Adaptive Exam';
+  document.getElementById('result-sub').textContent = r.subject + ' Adaptive Exam';
 
   const circle = document.getElementById('score-circle');
-  const color   = pct>=70?'#10b981':pct>=50?'#f59e0b':'#ef4444';
-  circle.style.borderColor = color;
-  document.getElementById('score-pct').textContent   = pct + '%';
-  document.getElementById('score-pct').style.color   = color;
-  document.getElementById('score-marks').textContent = r.totalMarks + ' / ' + r.maxMarks;
-  document.getElementById('score-level').textContent = r.levelReached || (r.hardCorrect>0?'Hard':r.mediumCorrect>0?'Medium':'Easy');
+  const color = pct >= 70 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
 
+  circle.style.borderColor = color;
+
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('score-pct').style.color = color;
+
+  document.getElementById('score-marks').textContent = r.totalMarks + ' / ' + r.maxMarks;
+
+  document.getElementById('score-level').textContent =
+    r.levelReached || (r.hardCorrect > 0 ? 'Hard' : r.mediumCorrect > 0 ? 'Medium' : 'Easy');
+
+  // ✅ Breakdown
   document.getElementById('breakdown-grid').innerHTML = [
-    {label:'Easy Level',   val:r.easyCorrect+'/3',   marks:r.easyMarks,   color:'#10b981'},
-    {label:'Medium Level', val:r.mediumCorrect+'/3', marks:r.mediumMarks, color:'#f59e0b'},
-    {label:'Hard Level',   val:r.hardCorrect+'/3',   marks:r.hardMarks,   color:'#ef4444'},
-  ].map(b=>`
+    { label: 'Easy Level', val: r.easyCorrect + '/3', marks: r.easyMarks, color: '#10b981' },
+    { label: 'Medium Level', val: r.mediumCorrect + '/3', marks: r.mediumMarks, color: '#f59e0b' },
+    { label: 'Hard Level', val: r.hardCorrect + '/3', marks: r.hardMarks, color: '#ef4444' }
+  ].map(b => `
     <div class="breakdown-card">
       <div class="breakdown-title">${b.label}</div>
       <div class="breakdown-val" style="color:${b.color}">${b.val}</div>
       <div class="breakdown-marks">+${b.marks} marks</div>
-    </div>`).join('');
+    </div>
+  `).join('');
 
+  // ✅ Weakness analysis
   const areas = [
-    {name:'Core Concepts',    pct: Math.round(r.easyCorrect/3*100),   color:'#10b981'},
-    {name:'Applied Problems', pct: Math.round(r.mediumCorrect/3*100), color:'#f59e0b'},
-    {name:'Advanced Topics',  pct: Math.round(r.hardCorrect/3*100),   color:'#ef4444'},
+    { name: 'Core Concepts', pct: Math.round((r.easyCorrect / 3) * 100), color: '#10b981' },
+    { name: 'Applied Problems', pct: Math.round((r.mediumCorrect / 3) * 100), color: '#f59e0b' },
+    { name: 'Advanced Topics', pct: Math.round((r.hardCorrect / 3) * 100), color: '#ef4444' }
   ];
-  document.getElementById('weakness-grid').innerHTML = areas.map(a=>`
+
+  document.getElementById('weakness-grid').innerHTML = areas.map(a => `
     <div class="weakness-card">
       <div class="weakness-topic">${a.name}</div>
-      <div class="weakness-bar"><div class="weakness-fill" style="width:${a.pct}%;background:${a.color}"></div></div>
+      <div class="weakness-bar">
+        <div class="weakness-fill" style="width:${a.pct}%;background:${a.color}"></div>
+      </div>
       <div class="weakness-pct">${a.pct}% correct</div>
-      <div class="weakness-suggestion">${a.pct>=66?'✅ Strong area — keep it up!':a.pct>=33?'⚠️ Needs more practice':'🎯 Focus area — review fundamentals'}</div>
-    </div>`).join('');
+      <div class="weakness-suggestion">
+        ${a.pct >= 66 ? '✅ Strong area — keep it up!' :
+          a.pct >= 33 ? '⚠️ Needs more practice' :
+          '🎯 Focus area — review fundamentals'}
+      </div>
+    </div>
+  `).join('');
 
-  const weak = areas.filter(a=>a.pct<66);
+  // ✅ Study plan
+  const weak = areas.filter(a => a.pct < 66);
+
   document.getElementById('study-plan').innerHTML = [
-    {icon:'1️⃣', title:'Focus on '+((weak[0]?.name)||'Advanced Topics'), desc:'Review concepts, practice 5 questions daily from this area before attempting harder ones.'},
-    {icon:'2️⃣', title:'Timed Practice', desc:'Set a 30-minute timer and solve past exam questions. Speed and accuracy both matter.'},
-    {icon:'📅', title:'7-Day Study Plan', desc:'Take one exam daily for 7 days. Focus on weak areas. Use the 3-2-1 method: 3 easy, 2 medium, 1 hard question per session.'},
-    {icon:'🎯', title:'Target Score', desc:'Aim for 80%+ in your next attempt. Review explanations for every wrong answer.'},
-  ].map(p=>`
+    {
+      icon: '1️⃣',
+      title: 'Focus on ' + ((weak[0]?.name) || 'Advanced Topics'),
+      desc: 'Review concepts, practice 5 questions daily before attempting harder ones.'
+    },
+    {
+      icon: '2️⃣',
+      title: 'Timed Practice',
+      desc: 'Set a 30-minute timer and solve past exam questions.'
+    },
+    {
+      icon: '📅',
+      title: '7-Day Study Plan',
+      desc: 'Take one exam daily and focus on weak areas.'
+    },
+    {
+      icon: '🎯',
+      title: 'Target Score',
+      desc: 'Aim for 80%+ in your next attempt.'
+    }
+  ].map(p => `
     <div class="plan-item">
       <span class="plan-icon">${p.icon}</span>
-      <div><div class="plan-title">${p.title}</div><div class="plan-desc">${p.desc}</div></div>
-    </div>`).join('');
+      <div>
+        <div class="plan-title">${p.title}</div>
+        <div class="plan-desc">${p.desc}</div>
+      </div>
+    </div>
+  `).join('');
 </script>
 </body>
 </html>

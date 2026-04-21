@@ -139,7 +139,6 @@
 
 <script>
 
-// ✅ Step 1: Check login
 let user = localStorage.getItem("currentUser");
 
 if (!user) {
@@ -147,39 +146,43 @@ if (!user) {
   window.location.href = "login.html";
 }
 
-// ✅ Step 2: Get user-specific data
-let data = JSON.parse(localStorage.getItem(user));
+// get saved data
+let data = JSON.parse(localStorage.getItem(user)) || {};
 
-if (!data) {
-  data = {
-    math:{lessons:0, mastery:0},
-    phy:{lessons:0, mastery:0},
-    chem:{lessons:0, mastery:0},
-    cs:{lessons:0, mastery:0}
-  };
-  localStorage.setItem(user, JSON.stringify(data));
-}
+// map subjects correctly
+const subjectMap = {
+  math: "Mathematics",
+  phy: "Physics",
+  chem: "Chemistry",
+  cs: "Computer Science"
+};
 
-// ✅ Step 3: Update UI
 function update(subject){
-  document.getElementById(subject+"-lessons").innerText = data[subject].lessons + " lessons";
-  document.getElementById(subject+"-mastery").innerText = data[subject].mastery + "% mastery";
-  document.getElementById(subject+"-progress").style.width = data[subject].mastery + "%";
+
+  let subjectName = subjectMap[subject];
+
+  let mastery = data[subjectName] || 0;
+
+  // lessons (optional logic)
+  let lessons = mastery > 0 ? 1 : 0;
+
+  document.getElementById(subject+"-lessons").innerText = lessons + " lessons";
+  document.getElementById(subject+"-mastery").innerText = mastery + "% mastery";
+  document.getElementById(subject+"-progress").style.width = mastery + "%";
 
   let status = "Start learning";
 
-  if(data[subject].mastery > 70)
+  if(mastery > 70)
     status = "Strong subject";
-  else if(data[subject].mastery > 40)
+  else if(mastery > 40)
     status = "Keep practicing";
 
   document.getElementById(subject+"-status").innerText = status;
 }
 
-// update all
+// update all subjects
 ["math","phy","chem","cs"].forEach(update);
 
 </script>
-
 </body>
 </html>
