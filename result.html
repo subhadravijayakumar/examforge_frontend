@@ -97,28 +97,32 @@
     window.location.href = 'student-dashboard.html';
   }
 
-  // ✅ ----------- 🔥 SAVE RESULT PER USER (FIXED) -----------
-
+  // ✅ 🔥 SAVE RESULT CORRECTLY (FINAL FIX)
   const currentUser = localStorage.getItem("currentUser");
 
   if (currentUser && r.subject) {
 
     const subjectMap = {
-      MATH: "Mathematics",
-      PHY: "Physics",
-      CHEM: "Chemistry",
-      CS: "Computer Science"
+      MATH: "math",
+      PHY: "phy",
+      CHEM: "chem",
+      CS: "cs"
     };
 
-    const subjectName = subjectMap[r.subject] || r.subject;
+    const key = subjectMap[r.subject];
 
     let userData = JSON.parse(localStorage.getItem(currentUser)) || {};
 
-    // save percentage
-    userData[subjectName] = r.percentage;
+    // initialize if not present
+    if (!userData[key]) {
+      userData[key] = { lessons: 0, mastery: 0 };
+    }
 
-    // optional: save marks
-    userData[subjectName + "_marks"] = r.totalMarks;
+    // save percentage
+    userData[key].mastery = r.percentage;
+
+    // optional: increment lessons
+    userData[key].lessons = (userData[key].lessons || 0) + 1;
 
     localStorage.setItem(currentUser, JSON.stringify(userData));
   }
