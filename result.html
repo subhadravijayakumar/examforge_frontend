@@ -97,18 +97,28 @@
     window.location.href = 'student-dashboard.html';
   }
 
-  // ✅ ----------- 🔥 SAVE RESULT PER USER -----------
+  // ✅ ----------- 🔥 SAVE RESULT PER USER (FIXED) -----------
 
   const currentUser = localStorage.getItem("currentUser");
 
   if (currentUser && r.subject) {
+
+    const subjectMap = {
+      MATH: "Mathematics",
+      PHY: "Physics",
+      CHEM: "Chemistry",
+      CS: "Computer Science"
+    };
+
+    const subjectName = subjectMap[r.subject] || r.subject;
+
     let userData = JSON.parse(localStorage.getItem(currentUser)) || {};
 
-    // store subject-wise percentage
-    userData[r.subject] = r.percentage;
+    // save percentage
+    userData[subjectName] = r.percentage;
 
-    // optional: store marks also
-    userData[r.subject + "_marks"] = r.totalMarks;
+    // optional: save marks
+    userData[subjectName + "_marks"] = r.totalMarks;
 
     localStorage.setItem(currentUser, JSON.stringify(userData));
   }
@@ -179,22 +189,22 @@
     {
       icon: '1️⃣',
       title: 'Focus on ' + ((weak[0]?.name) || 'Advanced Topics'),
-      desc: 'Review concepts, practice 5 questions daily before attempting harder ones.'
+      desc: 'Review concepts, practice daily.'
     },
     {
       icon: '2️⃣',
       title: 'Timed Practice',
-      desc: 'Set a 30-minute timer and solve past exam questions.'
+      desc: 'Solve questions with time limit.'
     },
     {
       icon: '📅',
-      title: '7-Day Study Plan',
-      desc: 'Take one exam daily and focus on weak areas.'
+      title: '7-Day Plan',
+      desc: 'Practice daily and improve weak areas.'
     },
     {
       icon: '🎯',
       title: 'Target Score',
-      desc: 'Aim for 80%+ in your next attempt.'
+      desc: 'Aim for 80%+ next attempt.'
     }
   ].map(p => `
     <div class="plan-item">
