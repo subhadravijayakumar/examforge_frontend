@@ -168,15 +168,15 @@
 
   function setTab(role) {
     currentRole = role;
-    document.getElementById('tab-student').classList.toggle('active', role==='student');
-    document.getElementById('tab-teacher').classList.toggle('active', role==='teacher');
+    document.getElementById('tab-student').classList.toggle('active', role === 'student');
+    document.getElementById('tab-teacher').classList.toggle('active', role === 'teacher');
   }
 
   async function doLogin() {
-    const email    = document.getElementById('email').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
-    const errorEl  = document.getElementById('error-msg');
-    const successEl= document.getElementById('success-msg');
+    const errorEl = document.getElementById('error-msg');
+    const successEl = document.getElementById('success-msg');
 
     errorEl.style.display = 'none';
     successEl.style.display = 'none';
@@ -198,38 +198,27 @@
 
       if (response.ok) {
 
-        // ✅ KEEP YOUR ORIGINAL SESSION STORAGE
+        // ✅ Store session data
         sessionStorage.setItem('token', data.token);
         sessionStorage.setItem('ef_user', JSON.stringify({
-          name:   data.name,
-          email:  data.email,
-          role:   data.role,
+          name: data.name,
+          email: data.email,
+          role: data.role,
           userId: data.userId
         }));
 
-        // ✅ 🔥 ADD THIS (MAIN FIX)
+        // ✅ 🔥 IMPORTANT: Store current user (for progress tracking)
         localStorage.setItem("currentUser", data.email);
-
-        // ✅ OPTIONAL (clear old progress bug issues)
-        // localStorage.removeItem(data.email);
 
         successEl.textContent = 'Login successful! Redirecting...';
         successEl.style.display = 'block';
 
-        // ✅ REDIRECT LOGIC
+        // ✅ FIXED REDIRECT (IMPORTANT CHANGE)
         setTimeout(() => {
           if (data.role === 'TEACHER') {
             window.location.href = 'teacher-dashboard.html';
           } else {
-
-            // ✅ CHECK IF FIRST TIME USER
-            let userData = localStorage.getItem(data.email);
-
-            if (!userData) {
-              window.location.href = 'select-subjects.html';
-            } else {
-              window.location.href = 'student-subjects.html';
-            }
+            window.location.href = 'student-subjects.html';
           }
         }, 1000);
 
@@ -239,7 +228,7 @@
       }
 
     } catch (err) {
-      errorEl.textContent = 'Cannot connect to server. Make sure backend is running!';
+      errorEl.textContent = 'Cannot connect to server. Please wait and try again.';
       errorEl.style.display = 'block';
     }
   }
