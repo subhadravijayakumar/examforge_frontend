@@ -96,8 +96,8 @@
     const fname    = document.getElementById('fname').value.trim();
     const lname    = document.getElementById('lname').value.trim();
     const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const cpass    = document.getElementById('cpassword').value;
+    const password = document.getElementById('password').value.trim();
+    const cpass    = document.getElementById('cpassword').value.trim();
     const errorEl  = document.getElementById('error-msg');
     const className= document.getElementById('className')?.value || '';
     if (!fname||!email||!password) { errorEl.textContent='Fill all required fields'; errorEl.style.display='block'; return; }
